@@ -21,6 +21,18 @@ namespace Shah_Traveling_Agency_API.Areas.Authentications.Repositories
             {
                 using var connection = _dapperContext.CreateConnection();
 
+                if (request.UserTypeId == 1 && !request.BranchId.HasValue)
+                {
+                    throw new Exception("BranchId is required for Admin.");
+                }
+
+                if (request.UserTypeId == 2)
+                {
+                    request.BranchId = null;
+                }
+
+
+
                 var passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
 
                 var parameters = new DynamicParameters();
@@ -28,8 +40,8 @@ namespace Shah_Traveling_Agency_API.Areas.Authentications.Repositories
                 parameters.Add("@UserName", request.UserName);
                 parameters.Add("@Email", request.Email);
                 parameters.Add("@Password", passwordHash);
-                parameters.Add("@BranchId", request.BranchId);
                 parameters.Add("@UserTypeId", request.UserTypeId);
+                parameters.Add("@BranchId", request.BranchId);
 
                 parameters.Add(
                     "@Message",

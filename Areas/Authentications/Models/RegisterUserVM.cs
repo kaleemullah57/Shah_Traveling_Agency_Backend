@@ -13,7 +13,7 @@
 
         public string Password { get; set; } = string.Empty;
 
-        public int BranchId { get; set; }
+        public int? BranchId { get; set; }
 
         public int UserTypeId { get; set; }
     }
