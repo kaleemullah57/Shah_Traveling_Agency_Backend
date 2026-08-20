@@ -21,12 +21,12 @@ namespace Shah_Traveling_Agency_API.Areas.Authentications.Repositories
             {
                 using var connection = _dapperContext.CreateConnection();
 
-                if (request.UserTypeId == 1 && !request.BranchId.HasValue)
+                if (request.UserTypeId == 2 && !request.BranchId.HasValue)
                 {
                     throw new Exception("BranchId is required for Admin.");
                 }
 
-                if (request.UserTypeId == 2)
+                if (request.UserTypeId == 3 && request.UserTypeId == 1)
                 {
                     request.BranchId = null;
                 }
