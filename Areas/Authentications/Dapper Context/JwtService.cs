@@ -18,8 +18,12 @@ namespace Shah_Traveling_Agency_API.Areas.Authentications.Dapper_Context
         {
             var claims = new List<Claim>
             {
+                //new Claim(
+                //    ClaimTypes.NameIdentifier,
+                //    user.UserID.ToString()
+                //),
                 new Claim(
-                    ClaimTypes.NameIdentifier,
+                    "UserId",
                     user.UserID.ToString()
                 ),
 

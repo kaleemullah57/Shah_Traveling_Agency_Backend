@@ -1,0 +1,264 @@
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Shah_Traveling_Agency_API.Areas.Authentications.Controllers;
+using Shah_Traveling_Agency_API.Areas.Authentications.Dapper_Context;
+using Shah_Traveling_Agency_API.Areas.SuperAdmin.Models;
+using Shah_Traveling_Agency_API.Areas.SuperAdmin.Repositories;
+
+namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    [Authorize]
+    public class SuperAdminSetupController : BaseController
+    {
+        private readonly JwtService _jwtService;
+        private readonly PasswordService _passwordService;
+        private readonly SuperAdminSetupRepo _superAdminSetupRepo;
+
+        public SuperAdminSetupController(JwtService jwtService, PasswordService passwordService, SuperAdminSetupRepo superAdminSetupRepo)
+        {
+            _jwtService = jwtService;
+            _passwordService = passwordService;
+            _superAdminSetupRepo = superAdminSetupRepo;
+        }
+
+
+
+
+        #region Branches
+
+
+        // Get Branches
+        [HttpPost("GetAllBranches")]
+        public async Task<IActionResult> GetAllBranches(BranchVM vm)
+        {
+            try
+            {
+
+
+                var result =
+                    await _superAdminSetupRepo.GetAllBranchesAsync(vm, UserId);
+
+                switch (result.StatusCode)
+                {
+
+                    case 0:
+
+                        return StatusCode(
+                            StatusCodes.Status500InternalServerError,
+                            new
+                            {
+                                success = false,
+                                statusCode =
+                                    StatusCodes.Status500InternalServerError,
+                                message = result.Message
+                            }
+                        );
+
+
+                    case 1:
+
+                        return StatusCode(
+                            StatusCodes.Status403Forbidden,
+                            new
+                            {
+                                success = false,
+                                statusCode =
+                                    StatusCodes.Status403Forbidden,
+                                message = result.Message
+                            }
+                        );
+
+                    case 2:
+
+                        return Ok(new
+                        {
+                            success = true,
+                            statusCode = StatusCodes.Status200OK,
+                            message = result.Message,
+                            data = result.Data
+                        });
+
+                    case 3:
+
+                        return NotFound(new
+                        {
+                            success = false,
+                            statusCode = StatusCodes.Status404NotFound,
+                            message = result.Message,
+                            data = new List<GetBranchModel>()
+                        });
+
+                    default:
+
+                        return StatusCode(
+                            StatusCodes.Status500InternalServerError,
+                            new
+                            {
+                                success = false,
+                                statusCode =
+                                    StatusCodes.Status500InternalServerError,
+                                message =
+                                    "Unexpected response from the server.",
+                                data = new List<GetBranchModel>()
+                            }
+                        );
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    new
+                    {
+                        success = false,
+                        statusCode =
+                            StatusCodes.Status500InternalServerError,
+                        message =
+                            $"An unexpected API error occurred: {ex.Message}"
+                    }
+                );
+            }
+        }
+
+
+
+
+        // Save Branches
+        [HttpPost("AddBranch")]
+        public async Task<IActionResult> AddBranch(AddBranchModel model)
+        {
+            Console.WriteLine($"BranchName: {model.BranchName}");
+            Console.WriteLine($"Location: {model.Location}");
+            Console.WriteLine($"IsActive: {model.IsActive}");
+            Console.WriteLine($"UserId: {UserId}");
+            try
+            {
+                if (model == null)
+                {
+                    return BadRequest(new
+                    {
+                        success = false,
+                        statusCode = StatusCodes.Status400BadRequest,
+                        message = "Invalid request."
+                    });
+                }
+
+                if (string.IsNullOrWhiteSpace(model.BranchName))
+                {
+                    return BadRequest(new
+                    {
+                        success = false,
+                        statusCode = StatusCodes.Status400BadRequest,
+                        message = "Branch name is required."
+                    });
+                }
+
+                if (string.IsNullOrWhiteSpace(model.Location))
+                {
+                    return BadRequest(new
+                    {
+                        success = false,
+                        statusCode = StatusCodes.Status400BadRequest,
+                        message = "Branch location is required."
+                    });
+                }
+
+                var result = await _superAdminSetupRepo.AddBranchAsync(model, UserId);
+
+                switch (result.StatusCode)
+                {
+                    case 3:
+
+                        return StatusCode(
+                            StatusCodes.Status201Created,
+                            new
+                            {
+                                success = true,
+                                statusCode = StatusCodes.Status201Created,
+                                message = result.Message
+                            }
+                        );
+                    case 1:
+
+                        return StatusCode(
+                            StatusCodes.Status403Forbidden,
+                            new
+                            {
+                                success = false,
+                                statusCode = StatusCodes.Status403Forbidden,
+                                message = result.Message
+                            }
+                        );
+                    case 2:
+
+                        return Conflict(
+                            new
+                            {
+                                success = false,
+                                statusCode = StatusCodes.Status409Conflict,
+                                message = result.Message
+                            }
+                        );
+                    case 4:
+
+                        return BadRequest(
+                            new
+                            {
+                                success = false,
+                                statusCode = StatusCodes.Status400BadRequest,
+                                message = result.Message
+                            }
+                        );
+
+                    // ==========================================
+                    // DATABASE / API ERROR
+                    // ==========================================
+                    case 0:
+
+                        return StatusCode(
+                            StatusCodes.Status500InternalServerError,
+                            new
+                            {
+                                success = false,
+                                statusCode =
+                                    StatusCodes.Status500InternalServerError,
+                                message = result.Message
+                            }
+                        );
+                    default:
+
+                        return StatusCode(
+                            StatusCodes.Status500InternalServerError,
+                            new
+                            {
+                                success = false,
+                                statusCode =
+                                    StatusCodes.Status500InternalServerError,
+                                message = "Unexpected response from the server."
+                            }
+                        );
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    new
+                    {
+                        success = false,
+                        statusCode =
+                            StatusCodes.Status500InternalServerError,
+                        message =
+                            $"An unexpected API error occurred: {ex.Message}"
+                    }
+                );
+            }
+        }
+
+        #endregion
+
+    }
+}
