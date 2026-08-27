@@ -98,6 +98,41 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Repositories
             }
         }
         #endregion
+
+        #region Countries
+
+        // Get Countries
+        public async Task<(int ReturnValue, string Message, List<Country> Data)> GetCountriesAsync(CountryVM vm, int userId)
+        {
+            using var connection = _dapperContext.CreateConnection();
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@Search", vm.search, DbType.String);
+
+            parameters.Add("@PageNumber", vm.pageNumber, DbType.Int32);
+
+            parameters.Add("@PageSize", vm.pageSize, DbType.Int32);
+
+            parameters.Add("@UserID", userId, DbType.Int32);
+
+            parameters.Add("@Message", dbType: DbType.String, direction: ParameterDirection.Output, size: -1);
+
+            parameters.Add("@ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
+
+            var data = (await connection.QueryAsync<Country>(
+                "Data.Sp_Get_Countries",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            )).ToList();
+
+            var returnValue = parameters.Get<int>("@ReturnValue");
+
+            var message = parameters.Get<string>("@Message") ?? string.Empty;
+
+            return (returnValue, message, data);
+        }
+        #endregion
     }
 
 }

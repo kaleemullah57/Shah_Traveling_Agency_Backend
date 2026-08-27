@@ -260,5 +260,71 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Controllers
 
         #endregion
 
+        #region Countries
+
+        // Get Countries
+        [HttpPost("GetCountries")]
+        public async Task<IActionResult> GetCountries(CountryVM vm)
+        {
+            try
+            {
+                var result = await _superAdminSetupRepo.GetCountriesAsync(vm,UserId);
+
+                return result.ReturnValue switch
+                {
+                    0 => StatusCode(500, new
+                    {
+                        success = false,
+                        statusCode = 500,
+                        message = result.Message,
+                        data = result.Data
+                    }),
+
+                    1 => StatusCode(403, new
+                    {
+                        success = false,
+                        statusCode = 403,
+                        message = result.Message,
+                        data = result.Data
+                    }),
+
+                    2 => Ok(new
+                    {
+                        success = true,
+                        statusCode = 200,
+                        message = result.Message,
+                        data = result.Data
+                    }),
+
+                    3 => Ok(new
+                    {
+                        success = true,
+                        statusCode = 200,
+                        message = result.Message,
+                        data = result.Data
+                    }),
+
+                    _ => StatusCode(500, new
+                    {
+                        success = false,
+                        statusCode = 500,
+                        message = "Unknown response from stored procedure.",
+                        data = result.Data
+                    })
+                };
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    success = false,
+                    statusCode = 500,
+                    message = ex.Message,
+                    data = Array.Empty<object>()
+                });
+            }
+        }
+        #endregion
+
     }
 }
