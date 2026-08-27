@@ -268,7 +268,7 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Controllers
         {
             try
             {
-                var result = await _superAdminSetupRepo.GetCountriesAsync(vm,UserId);
+                var result = await _superAdminSetupRepo.GetCountriesAsync(vm, UserId);
 
                 return result.ReturnValue switch
                 {
@@ -321,6 +321,73 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Controllers
                     statusCode = 500,
                     message = ex.Message,
                     data = Array.Empty<object>()
+                });
+            }
+        }
+
+
+
+        // Add Countries
+        [HttpPost("AddCountry")]
+        public async Task<IActionResult> AddCountry(AddCountryRequest model)
+        {
+            try
+            {
+
+                var result = await _superAdminSetupRepo.AddCountryAsync(model, UserId);
+
+                return result.ReturnValue switch
+                {
+                    0 => StatusCode(500, new
+                    {
+                        success = false,
+                        statusCode = 500,
+                        message = result.Message
+                    }),
+
+                    1 => StatusCode(403, new
+                    {
+                        success = false,
+                        statusCode = 403,
+                        message = result.Message
+                    }),
+
+                    2 => Conflict(new
+                    {
+                        success = false,
+                        statusCode = 409,
+                        message = result.Message
+                    }),
+
+                    3 => Ok(new
+                    {
+                        success = true,
+                        statusCode = 200,
+                        message = result.Message
+                    }),
+
+                    4 => BadRequest(new
+                    {
+                        success = false,
+                        statusCode = 400,
+                        message = result.Message
+                    }),
+
+                    _ => StatusCode(500, new
+                    {
+                        success = false,
+                        statusCode = 500,
+                        message = "Unknown response from stored procedure."
+                    })
+                };
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    success = false,
+                    statusCode = 500,
+                    message = ex.Message
                 });
             }
         }

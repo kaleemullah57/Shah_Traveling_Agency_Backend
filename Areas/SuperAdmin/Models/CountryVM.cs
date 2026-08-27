@@ -17,4 +17,15 @@
         public string? UserName { get; set; }
         public DateTime CreatedOn { get; set; }
     }
+
+
+
+
+    // Add Countries
+    public class AddCountryRequest
+    {
+        public string CountryName { get; set; } = string.Empty;
+        public string CountryCode { get; set; } = string.Empty;
+        public bool IsActive { get; set; } = true;
+    }
 }
