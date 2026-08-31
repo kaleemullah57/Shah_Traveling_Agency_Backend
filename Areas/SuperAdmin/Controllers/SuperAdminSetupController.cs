@@ -593,5 +593,70 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Controllers
         }
 
         #endregion
+
+        #region Post Types
+
+
+        // Add Post Types
+        [HttpPost("AddPostType")]
+        public async Task<IActionResult> AddPostType(AddPostTypeModel model)
+        {
+            try
+            {
+                var result = await _superAdminSetupRepo.AddPostTypeAsync(model, UserId);
+
+                return result.ReturnValue switch
+                {
+                    3 => Ok(new
+                    {
+                        statusCode = StatusCodes.Status200OK,
+                        status = true,
+                        message = result.Message
+                    }),
+
+                    2 => Conflict(new
+                    {
+                        statusCode = StatusCodes.Status409Conflict,
+                        status = false,
+                        message = result.Message
+                    }),
+
+                    1 => StatusCode(StatusCodes.Status403Forbidden, new
+                    {
+                        statusCode = StatusCodes.Status403Forbidden,
+                        status = false,
+                        message = result.Message
+                    }),
+
+                    4 => BadRequest(new
+                    {
+                        statusCode = StatusCodes.Status400BadRequest,
+                        status = false,
+                        message = result.Message
+                    }),
+
+                    _ => StatusCode(
+                        StatusCodes.Status500InternalServerError,
+                        new
+                        {
+                            statusCode = StatusCodes.Status500InternalServerError,
+                            status = false,
+                            message = result.Message
+                        })
+                };
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    new
+                    {
+                        statusCode = StatusCodes.Status500InternalServerError,
+                        status = false,
+                        message = ex.Message
+                    });
+            }
+        }
+        #endregion
     }
 }

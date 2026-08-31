@@ -332,6 +332,44 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Repositories
             };
         }
         #endregion
+
+        #region Post Types
+
+
+        // Add Post Types
+        public async Task<(int ReturnValue, string Message)> AddPostTypeAsync(AddPostTypeModel model, int userId)
+        {
+            try
+            {
+                using var connection = _dapperContext.CreateConnection();
+
+                var parameters = new DynamicParameters();
+
+                parameters.Add("@PostTypeName", model.PostTypeName);
+                parameters.Add("@IsActive", model.IsActive);
+                parameters.Add("@UserID", userId);
+
+                parameters.Add("@Message", dbType: DbType.String, size: -1, direction: ParameterDirection.Output);
+
+                parameters.Add("@ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
+
+                await connection.ExecuteAsync(
+                    "[Travel].[Sp_Add_PostTypes]",
+                    parameters,
+                    commandType: CommandType.StoredProcedure);
+
+                int returnValue = parameters.Get<int>("@ReturnValue");
+                string message = parameters.Get<string>("@Message") ?? string.Empty;
+
+                return (returnValue, message);
+            }
+            catch (Exception ex)
+            {
+                return (0, ex.Message);
+            }
+        }
+
+        #endregion
     }
 
 }
