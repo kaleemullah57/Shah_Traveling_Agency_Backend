@@ -245,6 +245,49 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Repositories
             };
         }
         #endregion
+
+        #region Cities
+
+        // Add Cities
+        public async Task<(bool Success, int StatusCode, string Message)> AddCity(AddCityModel model, int createdById)
+        {
+            using var connection = _dapperContext.CreateConnection();
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@CityName", model.CityName);
+            parameters.Add("@CountryId", model.CountryId);
+            parameters.Add("@ProvinceId", model.ProvinceId);
+            parameters.Add("@IsActive", model.IsActive);
+            parameters.Add("@CreatedById", createdById);
+
+            parameters.Add("@Message", dbType: DbType.String, direction: ParameterDirection.Output, size: -1);
+
+            parameters.Add("@ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
+
+            await connection.ExecuteAsync(
+                "[Data].[SP_Add_Cities]",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+
+            var returnValue = parameters.Get<int>("@ReturnValue");
+            var message = parameters.Get<string>("@Message") ?? "Unknown error";
+
+            return returnValue switch
+            {
+                3 => (true, 200, message),
+
+                1 => (false, 403, message),
+
+                2 => (false, 409, message),
+
+                4 => (false, 400, message),
+
+                _ => (false, 500, message)
+            };
+        }
+        #endregion
     }
 
 }

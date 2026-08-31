@@ -470,5 +470,75 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Controllers
         }
         #endregion
 
+        #region Cities
+
+        // Add Cities
+
+        [HttpPost("AddCity")]
+        public async Task<IActionResult> AddCity(AddCityModel model)
+        {
+            try
+            {
+                if (model == null)
+                {
+                    return BadRequest(new
+                    {
+                        success = false,
+                        statusCode = 400,
+                        message = "City data is required"
+                    });
+                }
+
+                if (string.IsNullOrWhiteSpace(model.CityName))
+                {
+                    return BadRequest(new
+                    {
+                        success = false,
+                        statusCode = 400,
+                        message = "City name is required"
+                    });
+                }
+
+                if (model.CountryId <= 0)
+                {
+                    return BadRequest(new
+                    {
+                        success = false,
+                        statusCode = 400,
+                        message = "Country is required"
+                    });
+                }
+
+                if (model.ProvinceId <= 0)
+                {
+                    return BadRequest(new
+                    {
+                        success = false,
+                        statusCode = 400,
+                        message = "Province is required"
+                    });
+                }
+
+                var (success, statusCode, message) =await _superAdminSetupRepo.AddCity(model,UserId);
+
+                return StatusCode(statusCode, new
+                {
+                    success,
+                    statusCode,
+                    message
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    success = false,
+                    statusCode = 500,
+                    message = ex.Message
+                });
+            }
+        }
+
+        #endregion
     }
 }
