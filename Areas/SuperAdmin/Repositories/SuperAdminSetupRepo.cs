@@ -164,6 +164,44 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Repositories
             return (returnValue, message);
         }
         #endregion
+
+        #region Provices
+
+
+        // Add Provinces
+        public async Task<(bool Success, int StatusCode, string Message)> AddProvince(AddProvinceModel model, int createdById)
+        {
+            using var connection = _dapperContext.CreateConnection();
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@provincename", model.ProvinceName);
+            parameters.Add("@Countryid", model.CountryId);
+            parameters.Add("@IsActive", model.IsActive);
+            parameters.Add("@CreatedByid", createdById);
+            parameters.Add("@Message", dbType: DbType.String, direction: ParameterDirection.Output, size: -1);
+
+            parameters.Add("@ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
+
+            await connection.ExecuteAsync(
+                "[Data].[Sp_Add_Provinces]",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+
+            var returnValue = parameters.Get<int>("@ReturnValue");
+            var message = parameters.Get<string>("@Message") ?? "Unknown error";
+
+            return returnValue switch
+            {
+                3 => (true, 200, message),
+                1 => (false, 403, message),
+                2 => (false, 409, message),
+                4 => (false, 400, message),
+                _ => (false, 500, message)
+            };
+        }
+        #endregion
     }
 
 }

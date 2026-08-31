@@ -393,5 +393,52 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Controllers
         }
         #endregion
 
+        #region Provinces
+
+        // Add Provinces
+        [HttpPost("AddProvince")]
+        public async Task<IActionResult> AddProvince(AddProvinceModel model)
+        {
+            try
+            {
+                if (model == null)
+                {
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = "Province data is required"
+                    });
+                }
+
+                if (string.IsNullOrWhiteSpace(model.ProvinceName))
+                {
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = "Province name is required"
+                    });
+                }
+
+                var (success, statusCode, message) = await _superAdminSetupRepo.AddProvince(model, UserId);
+
+                return StatusCode(statusCode, new
+                {
+                    success,
+                    statusCode,
+                    message
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    success = false,
+                    statusCode = 500,
+                    message = ex.Message
+                });
+            }
+        }
+        #endregion
+
     }
 }
