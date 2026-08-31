@@ -414,6 +414,47 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Repositories
         }
 
         #endregion
+
+        #region Branch Logos
+
+        // Add Branch Logo
+        public async Task<(int ReturnValue, string Message)> AddBranchLogoAsync(AddBranchLogoModel model,string logoPath, string originalFileName, string fileExtension, int userId)
+        {
+            try
+            {
+                using var connection = _dapperContext.CreateConnection();
+
+                var parameters = new DynamicParameters();
+
+                parameters.Add("@BranchId", model.BranchId);
+                parameters.Add("@LogoPath", logoPath);
+                parameters.Add("@OriginalFileName", originalFileName);
+                parameters.Add("@FileExtension", fileExtension);
+                parameters.Add("@IsActive", model.IsActive);
+                parameters.Add("@CreatedById", userId);
+
+                parameters.Add("@Message", dbType: DbType.String, size: -1, direction: ParameterDirection.Output);
+
+                parameters.Add("@ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
+
+                await connection.ExecuteAsync(
+                    "[Data].[SP_BranchLogo_Insert]",
+                    parameters,
+                    commandType: CommandType.StoredProcedure);
+
+                int returnValue = parameters.Get<int>("@ReturnValue");
+
+                string message =
+                    parameters.Get<string>("@Message") ?? string.Empty;
+
+                return (returnValue, message);
+            }
+            catch (Exception ex)
+            {
+                return (0, ex.Message);
+            }
+        }
+        #endregion
     }
 
 }

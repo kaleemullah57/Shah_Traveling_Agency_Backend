@@ -717,5 +717,237 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Controllers
             }
         }
         #endregion
+
+        #region Branch Logos
+        [HttpPost("AddBranchLogo")]
+        public async Task<IActionResult> AddBranchLogo([FromForm] AddBranchLogoModel model)
+        {
+            string? physicalFilePath = null;
+
+            try
+            {
+                // ----------------------------------------
+                // Validate BranchId
+                // ----------------------------------------
+
+                if (model.BranchId <= 0)
+                {
+                    return BadRequest(new
+                    {
+                        statusCode = StatusCodes.Status400BadRequest,
+                        status = false,
+                        message = "BranchId is required."
+                    });
+                }
+
+                // ----------------------------------------
+                // Validate File
+                // ----------------------------------------
+
+                if (model.Logo == null || model.Logo.Length == 0)
+                {
+                    return BadRequest(new
+                    {
+                        statusCode = StatusCodes.Status400BadRequest,
+                        status = false,
+                        message = "Please upload a logo."
+                    });
+                }
+
+                // ----------------------------------------
+                // Allowed Extensions
+                // ----------------------------------------
+
+                var allowedExtensions = new[]
+                {
+            ".jpg",
+            ".jpeg",
+            ".png",
+            ".webp"
+        };
+
+                var extension = Path
+                    .GetExtension(model.Logo.FileName)
+                    .ToLowerInvariant();
+
+                if (!allowedExtensions.Contains(extension))
+                {
+                    return BadRequest(new
+                    {
+                        statusCode = StatusCodes.Status400BadRequest,
+                        status = false,
+                        message = "Only JPG, JPEG, PNG and WEBP files are allowed."
+                    });
+                }
+
+                // ----------------------------------------
+                // Allowed Content Types
+                // ----------------------------------------
+
+                var allowedContentTypes = new[]
+                {
+            "image/jpeg",
+            "image/png",
+            "image/webp"
+        };
+
+                var contentType =
+                    model.Logo.ContentType.ToLowerInvariant();
+
+                if (!allowedContentTypes.Contains(contentType))
+                {
+                    return BadRequest(new
+                    {
+                        statusCode = StatusCodes.Status400BadRequest,
+                        status = false,
+                        message = "Invalid image file."
+                    });
+                }
+
+                // ----------------------------------------
+                // Maximum File Size = 5 MB
+                // ----------------------------------------
+
+                const long maxFileSize = 5 * 1024 * 1024;
+
+                if (model.Logo.Length > maxFileSize)
+                {
+                    return BadRequest(new
+                    {
+                        statusCode = StatusCodes.Status400BadRequest,
+                        status = false,
+                        message = "Logo size cannot exceed 5 MB."
+                    });
+                }
+
+                // ----------------------------------------
+                // Create Folder
+                // ----------------------------------------
+
+                var folderPath = Path.Combine(
+                    Directory.GetCurrentDirectory(),
+                    "wwwroot",
+                    "uploads",
+                    "branch-logos");
+
+                if (!Directory.Exists(folderPath))
+                {
+                    Directory.CreateDirectory(folderPath);
+                }
+
+                // ----------------------------------------
+                // Generate Unique File Name
+                // ----------------------------------------
+
+                var uniqueFileName =
+                    $"{Guid.NewGuid():N}{extension}";
+
+                physicalFilePath =
+                    Path.Combine(folderPath, uniqueFileName);
+
+                // ----------------------------------------
+                // Save Physical File
+                // ----------------------------------------
+
+                await using (var stream = new FileStream(
+                    physicalFilePath,
+                    FileMode.Create))
+                {
+                    await model.Logo.CopyToAsync(stream);
+                }
+
+                // ----------------------------------------
+                // Path to Save in Database
+                // ----------------------------------------
+
+                var logoPath =
+                    $"/uploads/branch-logos/{uniqueFileName}";
+
+                // ----------------------------------------
+                // Save Logo Information in Database
+                // ----------------------------------------
+
+                var result =
+                    await _superAdminSetupRepo.AddBranchLogoAsync(
+                        model,
+                        logoPath,
+                        model.Logo.FileName,
+                        extension,
+                        UserId);
+
+                // ----------------------------------------
+                // Success
+                // ----------------------------------------
+
+                if (result.ReturnValue == 2)
+                {
+                    return Ok(new
+                    {
+                        statusCode = StatusCodes.Status200OK,
+                        status = true,
+                        message = result.Message
+                    });
+                }
+
+                // ----------------------------------------
+                // Branch Not Found
+                // ----------------------------------------
+
+                if (result.ReturnValue == 1)
+                {
+                    if (System.IO.File.Exists(physicalFilePath))
+                    {
+                        System.IO.File.Delete(physicalFilePath);
+                    }
+
+                    return NotFound(new
+                    {
+                        statusCode = StatusCodes.Status404NotFound,
+                        status = false,
+                        message = result.Message
+                    });
+                }
+
+                // ----------------------------------------
+                // Database Error
+                // ----------------------------------------
+
+                if (System.IO.File.Exists(physicalFilePath))
+                {
+                    System.IO.File.Delete(physicalFilePath);
+                }
+
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    new
+                    {
+                        statusCode = StatusCodes.Status500InternalServerError,
+                        status = false,
+                        message = result.Message
+                    });
+            }
+            catch (Exception ex)
+            {
+                // ----------------------------------------
+                // Delete File if DB/API Failed
+                // ----------------------------------------
+
+                if (!string.IsNullOrEmpty(physicalFilePath) &&
+                    System.IO.File.Exists(physicalFilePath))
+                {
+                    System.IO.File.Delete(physicalFilePath);
+                }
+
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    new
+                    {
+                        statusCode = StatusCodes.Status500InternalServerError,
+                        status = false,
+                        message = ex.Message
+                    });
+            }
+        }
+        #endregion
     }
 }
