@@ -201,6 +201,49 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Repositories
                 _ => (false, 500, message)
             };
         }
+
+
+
+        // Get Provinces List
+        public async Task<(bool Success, int StatusCode, string Message, IEnumerable<CityModel> Data, int TotalCount)> GetCities(CitySearchModel model, int userId)
+        {
+            using var connection = _dapperContext.CreateConnection();
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@Search", string.IsNullOrWhiteSpace(model.Search) ? null : model.Search.Trim());
+
+            parameters.Add("@UserID", userId);
+            parameters.Add("@PageNumber", model.PageNumber);
+            parameters.Add("@PageSize", model.PageSize);
+
+            parameters.Add("@TotalCount", dbType: DbType.Int32, direction: ParameterDirection.Output);
+
+            parameters.Add("@Message", dbType: DbType.String, direction: ParameterDirection.Output, size: -1);
+
+            parameters.Add("@ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
+
+            using var multi = await connection.QueryMultipleAsync(
+                "[Data].[Sp_Get_Cities]",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+
+            var cities = await multi.ReadAsync<CityModel>();
+
+            var totalCount = parameters.Get<int>("@TotalCount");
+            var message = parameters.Get<string>("@Message") ?? string.Empty;
+            var returnValue = parameters.Get<int>("@ReturnValue");
+
+            return returnValue switch
+            {
+                0 => (false, 500, message, Enumerable.Empty<CityModel>(), 0),
+
+                1 => (false, 403, message, Enumerable.Empty<CityModel>(), 0),
+
+                _ => (true, 200, message, cities, totalCount)
+            };
+        }
         #endregion
     }
 

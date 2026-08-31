@@ -438,6 +438,36 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Controllers
                 });
             }
         }
+
+
+
+        // Get Provinces
+        [HttpPost("GetCitiesList")]
+        public async Task<IActionResult> GetCities(CitySearchModel model)
+        {
+            try
+            {
+                var (success, statusCode, message, data, totalCount) =await _superAdminSetupRepo.GetCities(model,UserId);
+
+                return StatusCode(statusCode, new
+                {
+                    success,
+                    statusCode,
+                    message,
+                    totalCount,
+                    data
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    success = false,
+                    statusCode = 500,
+                    message = ex.Message
+                });
+            }
+        }
         #endregion
 
     }
