@@ -418,7 +418,7 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Repositories
         #region Branch Logos
 
         // Add Branch Logo
-        public async Task<(int ReturnValue, string Message)> AddBranchLogoAsync(AddBranchLogoModel model,string logoPath, string originalFileName, string fileExtension, int userId)
+        public async Task<(int ReturnValue, string Message)> AddBranchLogoAsync(AddBranchLogoModel model, string logoPath, string originalFileName, string fileExtension, int userId)
         {
             try
             {
@@ -452,6 +452,40 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Repositories
             catch (Exception ex)
             {
                 return (0, ex.Message);
+            }
+        }
+
+
+
+        // Get Branch Logo
+        public async Task<(int ReturnValue, string Message, BranchLogoModel? Data)> GetBranchLogoAsync(int? branchId)
+        {
+            try
+            {
+                using var connection = _dapperContext.CreateConnection();
+
+                var parameters = new DynamicParameters();
+
+                parameters.Add("@BranchId", branchId);
+
+                parameters.Add("@Message", dbType: DbType.String, size: -1, direction: ParameterDirection.Output);
+
+                parameters.Add("@ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
+
+                var data = await connection.QueryFirstOrDefaultAsync<BranchLogoModel>(
+                    "[Data].[Sp_Get_BranchLogo]",
+                    parameters,
+                    commandType: CommandType.StoredProcedure);
+
+                int returnValue = parameters.Get<int>("@ReturnValue");
+
+                string message = parameters.Get<string>("@Message") ?? string.Empty;
+
+                return (returnValue, message, data);
+            }
+            catch (Exception ex)
+            {
+                return (0, ex.Message, null);
             }
         }
         #endregion

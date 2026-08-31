@@ -948,6 +948,69 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Controllers
                     });
             }
         }
+
+
+
+
+        // Get Branch Logo
+        [HttpGet("GetBranchLogoList")]
+        public async Task<IActionResult> GetBranchLogo(int? branchId)
+        {
+            try
+            {
+
+                var result = await _superAdminSetupRepo.GetBranchLogoAsync(branchId);
+
+                return result.ReturnValue switch
+                {
+                    2 => Ok(new
+                    {
+                        statusCode = StatusCodes.Status200OK,
+                        status = true,
+                        message = result.Message,
+                        data = result.Data
+                    }),
+
+                    1 => NotFound(new
+                    {
+                        statusCode = StatusCodes.Status404NotFound,
+                        status = false,
+                        message = result.Message,
+                        data = (object?)null
+                    }),
+
+                    3 => NotFound(new
+                    {
+                        statusCode = StatusCodes.Status404NotFound,
+                        status = false,
+                        message = result.Message,
+                        data = (object?)null
+                    }),
+
+                    _ => StatusCode(
+                        StatusCodes.Status500InternalServerError,
+                        new
+                        {
+                            statusCode = StatusCodes.Status500InternalServerError,
+                            status = false,
+                            message = result.Message,
+                            data = (object?)null
+                        })
+                };
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    new
+                    {
+                        statusCode = StatusCodes.Status500InternalServerError,
+                        status = false,
+                        message = ex.Message,
+                        data = (object?)null
+                    });
+            }
+        }
         #endregion
     }
 }

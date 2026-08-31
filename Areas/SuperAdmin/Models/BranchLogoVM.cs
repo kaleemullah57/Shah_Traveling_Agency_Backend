@@ -14,5 +14,22 @@
 
         public bool IsActive { get; set; } = true;
     }
+
+
+
+    // Get Branch Logo
+
+  
+    public class BranchLogoModel
+    {
+        public int BranchLogoId { get; set; }
+        public string LogoPath { get; set; } = string.Empty;
+        public string FileExtension { get; set; } = string.Empty;
+        public bool IsActive { get; set; }
+        public int BranchId { get; set; }
+        public string BranchName { get; set; } = string.Empty;
+        public int CreatedById { get; set; }
+        public string CreatedBy { get; set; } = string.Empty;
+    }
 }
 
