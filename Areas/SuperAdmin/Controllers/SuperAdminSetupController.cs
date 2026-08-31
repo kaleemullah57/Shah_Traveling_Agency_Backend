@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Shah_Traveling_Agency_API.Areas.Authentications.Controllers;
 using Shah_Traveling_Agency_API.Areas.Authentications.Dapper_Context;
@@ -1008,6 +1007,143 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Controllers
                         status = false,
                         message = ex.Message,
                         data = (object?)null
+                    });
+            }
+        }
+        #endregion
+
+        #region Post Categories
+
+
+        // Add Post Categories
+        [HttpPost("AddPostCategory")]
+        public async Task<IActionResult> AddPostCategory(AddPostCategoryModel model)
+        {
+            try
+            {
+                var result = await _superAdminSetupRepo.AddPostCategoryAsync(model, UserId);
+
+                return result.ReturnValue switch
+                {
+                    3 => Ok(new
+                    {
+                        statusCode = StatusCodes.Status200OK,
+                        status = true,
+                        message = result.Message
+                    }),
+
+                    2 => Conflict(new
+                    {
+                        statusCode = StatusCodes.Status409Conflict,
+                        status = false,
+                        message = result.Message
+                    }),
+
+                    1 => StatusCode(
+                        StatusCodes.Status403Forbidden,
+                        new
+                        {
+                            statusCode = StatusCodes.Status403Forbidden,
+                            status = false,
+                            message = result.Message
+                        }),
+
+                    4 => BadRequest(new
+                    {
+                        statusCode = StatusCodes.Status400BadRequest,
+                        status = false,
+                        message = result.Message
+                    }),
+
+                    _ => StatusCode(
+                        StatusCodes.Status500InternalServerError,
+                        new
+                        {
+                            statusCode = StatusCodes.Status500InternalServerError,
+                            status = false,
+                            message = result.Message
+                        })
+                };
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    new
+                    {
+                        statusCode = StatusCodes.Status500InternalServerError,
+                        status = false,
+                        message = ex.Message
+                    });
+            }
+        }
+
+
+
+
+
+        // Get Post Categories
+        [HttpPost("GetPostCategories")]
+        public async Task<IActionResult> GetPostCategories(GetPostCategoryRequest vm)
+        {
+            try
+            {
+                var result = await _superAdminSetupRepo.GetPostCategoriesAsync(vm, UserId);
+
+                return result.ReturnValue switch
+                {
+                    2 => Ok(new
+                    {
+                        statusCode = StatusCodes.Status200OK,
+                        status = true,
+                        message = result.Message,
+                        totalCount = result.TotalCount,
+                        data = result.Data
+                    }),
+
+                    3 => NotFound(new
+                    {
+                        statusCode = StatusCodes.Status404NotFound,
+                        status = false,
+                        message = result.Message,
+                        totalCount = 0,
+                        data = result.Data
+                    }),
+
+                    1 => StatusCode(
+                        StatusCodes.Status403Forbidden,
+                        new
+                        {
+                            statusCode = StatusCodes.Status403Forbidden,
+                            status = false,
+                            message = result.Message,
+                            totalCount = 0,
+                            data = result.Data
+                        }),
+
+                    _ => StatusCode(
+                        StatusCodes.Status500InternalServerError,
+                        new
+                        {
+                            statusCode = StatusCodes.Status500InternalServerError,
+                            status = false,
+                            message = result.Message,
+                            totalCount = 0,
+                            data = result.Data
+                        })
+                };
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    new
+                    {
+                        statusCode = StatusCodes.Status500InternalServerError,
+                        status = false,
+                        message = ex.Message,
+                        totalCount = 0,
+                        data = Enumerable.Empty<GetPostCategoryModel>()
                     });
             }
         }

@@ -489,6 +489,96 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Repositories
             }
         }
         #endregion
+
+        #region Post Categories
+
+
+        // Add Post Category
+        public async Task<(int ReturnValue, string Message)> AddPostCategoryAsync(AddPostCategoryModel model, int userId)
+        {
+            try
+            {
+                using var connection = _dapperContext.CreateConnection();
+
+                var parameters = new DynamicParameters();
+
+                parameters.Add("@Categoryname", model.CategoryName);
+                parameters.Add("@Description", model.Description);
+                parameters.Add("@IsActive", model.IsActive);
+                parameters.Add("@UserID", userId);
+
+                parameters.Add("@Message", dbType: DbType.String, size: -1, direction: ParameterDirection.Output);
+
+                parameters.Add("@ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
+
+                await connection.ExecuteAsync(
+                    "[Travel].[Sp_Add_PostCategories]",
+                    parameters,
+                    commandType: CommandType.StoredProcedure);
+
+                int returnValue = parameters.Get<int>("@ReturnValue");
+
+                string message = parameters.Get<string>("@Message") ?? string.Empty;
+
+                return (returnValue, message);
+            }
+            catch (Exception ex)
+            {
+                return (0, ex.Message);
+            }
+        }
+
+
+
+        // Get Post Categories
+        public async Task<(int ReturnValue, string Message, int TotalCount, IEnumerable<GetPostCategoryModel> Data)> GetPostCategoriesAsync(GetPostCategoryRequest vm, int userId)
+        {
+            try
+            {
+                using var connection = _dapperContext.CreateConnection();
+
+                var parameters = new DynamicParameters();
+
+                parameters.Add("@Search", vm.Search);
+                parameters.Add("@PageNumber", vm.PageNumber);
+                parameters.Add("@PageSize", vm.PageSize);
+                parameters.Add("@UserID", userId);
+
+                parameters.Add("@TotalCount", dbType: DbType.Int32, direction: ParameterDirection.Output);
+
+                parameters.Add("@Message", dbType: DbType.String, size: -1, direction: ParameterDirection.Output);
+
+                parameters.Add("@ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
+
+                var data = await connection.QueryAsync<GetPostCategoryModel>(
+                    "[Travel].[Sp_Get_PostCategories]",
+                    parameters,
+                    commandType: CommandType.StoredProcedure);
+
+                int returnValue = parameters.Get<int>("@ReturnValue");
+
+                string message = parameters.Get<string>("@Message") ?? string.Empty;
+
+                int totalCount = parameters.Get<int>("@TotalCount");
+
+                return (
+                    returnValue,
+                    message,
+                    totalCount,
+                    data
+                );
+            }
+            catch (Exception ex)
+            {
+                return (
+                    0,
+                    ex.Message,
+                    0,
+                    Enumerable.Empty<GetPostCategoryModel>()
+                );
+            }
+        }
+        #endregion
     }
 
 }
