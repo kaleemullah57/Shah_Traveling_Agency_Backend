@@ -369,6 +369,50 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Repositories
             }
         }
 
+
+
+
+        // Get Post Types
+
+        public async Task<(int ReturnValue, string Message, IEnumerable<TravelTypeModel> Data)> GetTravelTypesAsync(GetTravelTypeRequest vm, int userId)
+        {
+            try
+            {
+                using var connection = _dapperContext.CreateConnection();
+
+                var parameters = new DynamicParameters();
+
+                parameters.Add("@Search", vm.Search);
+                parameters.Add("@PageNumber", vm.PageNumber);
+                parameters.Add("@PageSize", vm.PageSize);
+                parameters.Add("@UserID", userId);
+
+                parameters.Add("@Message", dbType: DbType.String, size: -1, direction: ParameterDirection.Output);
+
+                parameters.Add("@ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
+
+                using var multi = await connection.QueryMultipleAsync(
+                    "[Travel].[Sp_Get_TravelTypes]",
+                    parameters,
+                    commandType: CommandType.StoredProcedure);
+
+                // First result set: SELECT * FROM Travel.PostTypes
+                await multi.ReadAsync();
+
+                // Second result set: required data
+                var data = await multi.ReadAsync<TravelTypeModel>();
+
+                int returnValue = parameters.Get<int>("@ReturnValue");
+                string message = parameters.Get<string>("@Message") ?? string.Empty;
+
+                return (returnValue, message, data);
+            }
+            catch (Exception ex)
+            {
+                return (0, ex.Message, Enumerable.Empty<TravelTypeModel>());
+            }
+        }
+
         #endregion
     }
 

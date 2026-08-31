@@ -542,7 +542,7 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Controllers
                     });
                 }
 
-                var (success, statusCode, message) =await _superAdminSetupRepo.AddCity(model,UserId);
+                var (success, statusCode, message) = await _superAdminSetupRepo.AddCity(model, UserId);
 
                 return StatusCode(statusCode, new
                 {
@@ -570,7 +570,7 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Controllers
         {
             try
             {
-                var (success,statusCode,message,data,totalCount) = await _superAdminSetupRepo.GetCities(model,UserId);
+                var (success, statusCode, message, data, totalCount) = await _superAdminSetupRepo.GetCities(model, UserId);
 
                 return StatusCode(statusCode, new
                 {
@@ -631,6 +631,65 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Controllers
                     4 => BadRequest(new
                     {
                         statusCode = StatusCodes.Status400BadRequest,
+                        status = false,
+                        message = result.Message
+                    }),
+
+                    _ => StatusCode(
+                        StatusCodes.Status500InternalServerError,
+                        new
+                        {
+                            statusCode = StatusCodes.Status500InternalServerError,
+                            status = false,
+                            message = result.Message
+                        })
+                };
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    new
+                    {
+                        statusCode = StatusCodes.Status500InternalServerError,
+                        status = false,
+                        message = ex.Message
+                    });
+            }
+        }
+
+
+
+
+        // Get Post Types
+        [HttpPost("GetTravelTypes")]
+        public async Task<IActionResult> GetTravelTypes(GetTravelTypeRequest vm)
+        {
+            try
+            {
+                var result = await _superAdminSetupRepo.GetTravelTypesAsync(vm, UserId);
+
+                return result.ReturnValue switch
+                {
+                    2 => Ok(new
+                    {
+                        statusCode = StatusCodes.Status200OK,
+                        status = true,
+                        message = result.Message,
+                        data = result.Data
+                    }),
+
+                    3 => NotFound(new
+                    {
+                        statusCode = StatusCodes.Status404NotFound,
+                        status = false,
+                        message = result.Message,
+                        data = result.Data
+                    }),
+
+                    1 => StatusCode(StatusCodes.Status403Forbidden, new
+                    {
+                        statusCode = StatusCodes.Status403Forbidden,
                         status = false,
                         message = result.Message
                     }),
