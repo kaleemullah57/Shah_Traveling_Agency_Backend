@@ -97,6 +97,31 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Repositories
                 );
             }
         }
+
+
+
+        // Get Branch By Id
+        public async Task<(int ReturnValue, string Message, GetBranchByIdModel? Data)> GetBranchByBranchId(int branchId)
+        {
+            using var connection = _dapperContext.CreateConnection();
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@BranchId", branchId);
+            parameters.Add("@Message", dbType: DbType.String, size: -1, direction: ParameterDirection.Output);
+            parameters.Add("@ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
+
+            var data = await connection.QueryFirstOrDefaultAsync<GetBranchByIdModel>(
+                "Data.SP_Get_BranchByBranchId",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+
+            var returnValue = parameters.Get<int>("@ReturnValue");
+            var message = parameters.Get<string>("@Message") ?? string.Empty;
+
+            return (returnValue, message, data);
+        }
         #endregion
 
         #region Countries

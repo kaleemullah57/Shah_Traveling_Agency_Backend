@@ -212,9 +212,6 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Controllers
                             }
                         );
 
-                    // ==========================================
-                    // DATABASE / API ERROR
-                    // ==========================================
                     case 0:
 
                         return StatusCode(
@@ -254,6 +251,70 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Controllers
                             $"An unexpected API error occurred: {ex.Message}"
                     }
                 );
+            }
+        }
+
+
+
+
+        // Get Banch By Id
+        [HttpGet("GetBranchByBranchId/{branchId}")]
+        public async Task<IActionResult> GetBranchByBranchId(int branchId)
+        {
+            try
+            {
+                var result = await _superAdminSetupRepo.GetBranchByBranchId(branchId);
+
+                if (result.ReturnValue == 2)
+                {
+                    return Ok(new
+                    {
+                        statusCode = 200,
+                        status = true,
+                        message = result.Message,
+                        data = result.Data
+                    });
+                }
+
+                if (result.ReturnValue == 1)
+                {
+                    return NotFound(new
+                    {
+                        statusCode = 404,
+                        status = false,
+                        message = result.Message,
+                        data = (object?)null
+                    });
+                }
+
+                if (result.ReturnValue == 3)
+                {
+                    return Ok(new
+                    {
+                        statusCode = 200,
+                        status = false,
+                        message = result.Message,
+                        data = (object?)null
+                    });
+                }
+
+                return StatusCode(500, new
+                {
+                    statusCode = 500,
+                    status = false,
+                    message = result.Message,
+                    data = (object?)null
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    statusCode = 500,
+                    status = false,
+                    message = ex.Message,
+                    data = (object?)null
+                });
             }
         }
 

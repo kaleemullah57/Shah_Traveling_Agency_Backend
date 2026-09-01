@@ -33,4 +33,16 @@
         public string Location { get; set; } = string.Empty;
         public bool IsActive { get; set; } = true;
     }
+
+
+
+    // Get Branch ById
+    public class GetBranchByIdModel
+    {
+        public int BranchId { get; set; }
+        public string? BranchName { get; set; }
+        public string? Location { get; set; }
+        public int? CreatedById { get; set; }
+        public bool IsActive { get; set; }
+    }
 }
