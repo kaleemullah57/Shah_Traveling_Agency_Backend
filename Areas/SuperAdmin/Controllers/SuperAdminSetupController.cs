@@ -953,12 +953,12 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Controllers
 
         // Get Branch Logo
         [HttpGet("GetBranchLogoList")]
-        public async Task<IActionResult> GetBranchLogo(int? branchId)
+        public async Task<IActionResult> GetBranchLogo()
         {
             try
             {
 
-                var result = await _superAdminSetupRepo.GetBranchLogoAsync(branchId);
+                var result = await _superAdminSetupRepo.GetBranchLogoAsync(UserId);
 
                 return result.ReturnValue switch
                 {

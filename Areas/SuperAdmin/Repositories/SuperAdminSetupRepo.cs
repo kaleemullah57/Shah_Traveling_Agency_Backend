@@ -458,7 +458,7 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Repositories
 
 
         // Get Branch Logo
-        public async Task<(int ReturnValue, string Message, BranchLogoModel? Data)> GetBranchLogoAsync(int? branchId)
+        public async Task<(int ReturnValue, string Message, BranchLogoModel? Data)> GetBranchLogoAsync(int UserID)
         {
             try
             {
@@ -466,7 +466,7 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Repositories
 
                 var parameters = new DynamicParameters();
 
-                parameters.Add("@BranchId", branchId);
+                parameters.Add("@UserID", UserID);
 
                 parameters.Add("@Message", dbType: DbType.String, size: -1, direction: ParameterDirection.Output);
 
