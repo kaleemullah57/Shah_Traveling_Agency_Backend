@@ -144,7 +144,6 @@ namespace Shah_Traveling_Agency_API.Areas.BranchAdmin.Repositories
             public bool IsActive { get; set; }
         }
 
-
         #endregion
     }
 }

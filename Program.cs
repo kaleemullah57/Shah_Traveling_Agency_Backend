@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -72,6 +74,26 @@ app.UseSwaggerUI();
 app.UseHttpsRedirection();
 
 app.UseCors("AngularPolicy");
+
+app.UseStaticFiles();
+
+// Create Uploads folder if it doesn't exist
+var uploadsPath = Path.Combine(
+    builder.Environment.ContentRootPath,
+    "Uploads"
+);
+
+Directory.CreateDirectory(uploadsPath);
+
+
+// Serve Uploads folder
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(uploadsPath),
+    RequestPath = "/uploads"
+});
+
+
 
 app.UseAuthorization();
 
