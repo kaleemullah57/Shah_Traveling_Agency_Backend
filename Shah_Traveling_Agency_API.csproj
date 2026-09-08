@@ -19,6 +19,7 @@
 
   <ItemGroup>
     <Folder Include="Areas\BranchAdmin\Controllers\" />
+    <Folder Include="Areas\DropDown\Models\" />
   </ItemGroup>
 
 </Project>
