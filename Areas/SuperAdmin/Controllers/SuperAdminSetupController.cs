@@ -1209,5 +1209,65 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Controllers
             }
         }
         #endregion
+
+        #region Airlines
+
+        // Add Airlines
+        [HttpPost("AddAirline")]
+        public async Task<IActionResult> AddAirline([FromBody] AddAirlineRequest model)
+        {
+            try
+            {
+                if (model == null)
+                {
+                    return BadRequest(new
+                    {
+                        statusCode = 400,
+                        status = "Failed",
+                        message = "Invalid request."
+                    });
+                }
+
+
+                var result = await _superAdminSetupRepo.AddAirlineAsync(model, createdById);
+
+                switch (result.ReturnValue)
+                {
+                    case 1:
+                        return Ok(new
+                        {
+                            statusCode = 200,
+                            status = "Success",
+                            message = result.Message
+                        });
+
+                    case 2:
+                        return BadRequest(new
+                        {
+                            statusCode = 400,
+                            status = "Failed",
+                            message = result.Message
+                        });
+
+                    default:
+                        return StatusCode(500, new
+                        {
+                            statusCode = 500,
+                            status = "Exception Error",
+                            message = result.Message
+                        });
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    statusCode = 500,
+                    status = "Exception Error",
+                    message = ex.Message
+                });
+            }
+        }
+        #endregion
     }
 }

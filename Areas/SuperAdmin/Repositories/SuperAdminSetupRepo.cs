@@ -604,6 +604,50 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Repositories
             }
         }
         #endregion
+
+        #region Airlines
+
+        // Add Airlines
+        public async Task<(int ReturnValue, string Message)> AddAirlineAsync(AddAirlineRequest model, int createdById)
+        {
+            using var connection = _dapperContext.CreateConnection();
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@AirlineName", model.AirlineName, DbType.String);
+
+            parameters.Add("@AirlineCode", model.AirlineCode, DbType.String);
+
+            parameters.Add("@IATACode", model.IATACode, DbType.String);
+
+            parameters.Add("@ICAOCode", model.ICAOCode, DbType.String);
+
+            parameters.Add("@CountryId", model.CountryId, DbType.Int32);
+
+            parameters.Add("@LogoPath", model.LogoPath, DbType.String);
+
+            parameters.Add("@IsActive", model.IsActive, DbType.Boolean);
+
+            parameters.Add("@CreatedById", createdById, DbType.Int32);
+
+            parameters.Add("@Message", dbType: DbType.String, direction: ParameterDirection.Output, size: -1);
+
+            parameters.Add("@ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
+
+            await connection.ExecuteAsync(
+                "[Data].[Sp_Add_Airlines]",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+
+            int returnValue = parameters.Get<int>("@ReturnValue");
+
+            string message = parameters.Get<string>("@Message") ?? string.Empty;
+
+            return (returnValue, message);
+        }
+
+        #endregion
     }
 
 }
