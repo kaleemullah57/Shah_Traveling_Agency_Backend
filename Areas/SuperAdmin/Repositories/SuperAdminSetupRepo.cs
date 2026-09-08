@@ -647,6 +647,51 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Repositories
             return (returnValue, message);
         }
 
+
+
+
+
+        // Get Airlines
+        public async Task<(IEnumerable<AirlineModel> Data, int TotalCount, int ReturnValue, string Message)> GetAirlinesAsync(AirlineVM vm, int userId)
+        {
+            using var connection = _dapperContext.CreateConnection();
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@Search", vm.Search, DbType.String);
+
+            parameters.Add("@PageNumber", vm.PageNumber, DbType.Int32);
+
+            parameters.Add("@PageSize", vm.PageSize, DbType.Int32);
+
+            parameters.Add("@UserID", userId, DbType.Int32);
+
+            parameters.Add("@TotalCount", dbType: DbType.Int32, direction: ParameterDirection.Output);
+
+            parameters.Add("@Message", dbType: DbType.String, direction: ParameterDirection.Output, size: -1);
+
+            parameters.Add("@ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
+
+            var data = await connection.QueryAsync<AirlineModel>(
+                "[Data].[Sp_Get_Airlines]",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+
+            var totalCount = parameters.Get<int?>("@TotalCount") ?? 0;
+
+            var returnValue = parameters.Get<int?>("@ReturnValue") ?? 0;
+
+            var message = parameters.Get<string>("@Message") ?? string.Empty;
+
+            return (
+                data,
+                totalCount,
+                returnValue,
+                message
+            );
+        }
+
         #endregion
     }
 

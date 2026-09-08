@@ -1229,7 +1229,7 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Controllers
                 }
 
 
-                var result = await _superAdminSetupRepo.AddAirlineAsync(model, createdById);
+                var result = await _superAdminSetupRepo.AddAirlineAsync(model, UserId);
 
                 switch (result.ReturnValue)
                 {
@@ -1265,6 +1265,84 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Controllers
                     statusCode = 500,
                     status = "Exception Error",
                     message = ex.Message
+                });
+            }
+        }
+
+
+
+
+
+        // Get Airlines
+        [HttpPost("GetAirlines")]
+        public async Task<IActionResult> GetAirlines(AirlineVM vm)
+        {
+            try
+            {
+
+
+                var result = await _superAdminSetupRepo.GetAirlinesAsync(vm, UserId);
+
+
+                switch (result.ReturnValue)
+                {
+                    case 1:
+
+                        return Ok(new
+                        {
+                            statusCode = 200,
+                            status = "Success",
+                            message = result.Message,
+                            data = result.Data,
+                            totalCount = result.TotalCount
+                        });
+
+
+                    case 2:
+
+                        return StatusCode(403, new
+                        {
+                            statusCode = 403,
+                            status = "Failed",
+                            message = result.Message,
+                            data = Array.Empty<object>(),
+                            totalCount = 0
+                        });
+
+
+                    case 3:
+
+                        return NotFound(new
+                        {
+                            statusCode = 404,
+                            status = "Failed",
+                            message = result.Message,
+                            data = Array.Empty<object>(),
+                            totalCount = 0
+                        });
+
+
+                    default:
+
+                        return StatusCode(500, new
+                        {
+                            statusCode = 500,
+                            status = "Exception Error",
+                            message = result.Message,
+                            data = Array.Empty<object>(),
+                            totalCount = 0
+                        });
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    statusCode = 500,
+                    status = "Exception Error",
+                    message = ex.Message,
+                    data = Array.Empty<object>(),
+                    totalCount = 0
                 });
             }
         }
