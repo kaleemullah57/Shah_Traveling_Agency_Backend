@@ -30,6 +30,7 @@
         public string CountryCode { get; set; }
         public int CreatedById { get; set; }
         public string UserName { get; set; }
-        public DateTime CreatedOn { get; set; }
+        public DateTime CreFatedOn { get; set; }
+        public bool? IsActive { get; set; }
     }
 }
