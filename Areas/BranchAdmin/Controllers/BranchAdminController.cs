@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Shah_Traveling_Agency_API.Areas.Authentications.Controllers;
 using Shah_Traveling_Agency_API.Areas.Authentications.Dapper_Context;
@@ -10,6 +11,7 @@ namespace Shah_Traveling_Agency_API.Areas.BranchAdmin.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class BranchAdminController : BaseController
     {
 
@@ -183,6 +185,64 @@ namespace Shah_Traveling_Agency_API.Areas.BranchAdmin.Controllers
                     status = false,
                     message = ex.Message,
                     data = new List<object>()
+                });
+            }
+        }
+
+
+
+
+
+        // Delete Destinations
+        [HttpDelete("DeleteDestination/{destinationId}")]
+        public async Task<IActionResult> DeleteDestination(int destinationId)
+        {
+            try
+            {
+                var result = await _branchAdminRepo.DeleteDestination(destinationId, BranchId, UserId);
+
+                if (result.StatusCode == 1)
+                {
+                    return Ok(new
+                    {
+                        status = true,
+                        statusCode = 200,
+                        message = result.Message,
+                        data = (object?)null,
+                        success = true
+                    });
+                }
+
+                if (result.StatusCode == 2)
+                {
+                    return NotFound(new
+                    {
+                        status = false,
+                        statusCode = 404,
+                        message = result.Message,
+                        data = (object?)null,
+                        success = false
+                    });
+                }
+
+                return BadRequest(new
+                {
+                    status = false,
+                    statusCode = 400,
+                    message = result.Message,
+                    data = (object?)null,
+                    success = false
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    status = false,
+                    statusCode = 500,
+                    message = ex.Message,
+                    data = (object?)null,
+                    success = false
                 });
             }
         }

@@ -1,4 +1,5 @@
 ﻿using Dapper;
+using Microsoft.Data.SqlClient;
 using Shah_Traveling_Agency_API.Areas.Authentications.Dapper_Context;
 using Shah_Traveling_Agency_API.Areas.BranchAdmin.Models;
 using System.Data;
@@ -142,6 +143,36 @@ namespace Shah_Traveling_Agency_API.Areas.BranchAdmin.Repositories
             public DateTime CreatedOn { get; set; }
 
             public bool IsActive { get; set; }
+        }
+
+
+
+
+
+
+
+        // Delete Destinations
+        public async Task<(int StatusCode, string Message)> DeleteDestination(int destinationId, int branchId, int userId)
+        {
+
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@DestinationId", destinationId);
+            parameters.Add("@BranchId", branchId);
+            parameters.Add("@UserID", userId);
+
+            parameters.Add("@Message", dbType: DbType.String, size: -1, direction: ParameterDirection.Output);
+
+            using var connection = _dapperContext.CreateConnection();
+            var result = await connection.ExecuteAsync(
+                "Travel.Sp_Delete_Destinations_By_BranchAdmin",
+                parameters,
+                commandType: CommandType.StoredProcedure);
+
+            var message = parameters.Get<string>("@Message") ?? "Unknown error";
+
+            return (result, message);
         }
 
         #endregion

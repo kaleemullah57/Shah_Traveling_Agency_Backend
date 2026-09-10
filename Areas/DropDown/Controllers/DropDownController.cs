@@ -107,57 +107,6 @@ namespace Shah_Traveling_Agency_API.Areas.DropDown.Controllers
         #endregion
 
 
-        #region Cities
-
-        [HttpGet("GetCitiesByProvinceId")]
-        public async Task<IActionResult> GetCitiesByProvinceId([FromQuery] int provinceId)
-        {
-            try
-            {
-                var result = await _dropDownRepo.GetCitiesByProvinceIdAsync(provinceId);
-
-                if (result.ReturnValue == 0)
-                {
-                    return StatusCode(500, new
-                    {
-                        statusCode = 500,
-                        status = "Error",
-                        message = result.Message ?? "Unable to retrieve cities.",
-                        data = Array.Empty<object>()
-                    });
-                }
-
-                if (result.ReturnValue == 2)
-                {
-                    return Ok(new
-                    {
-                        statusCode = 200,
-                        status = "Success",
-                        message = result.Message ?? "No cities found.",
-                        data = result.Data
-                    });
-                }
-
-                return Ok(new
-                {
-                    statusCode = 200,
-                    status = "Success",
-                    message = result.Message ?? "Cities retrieved successfully.",
-                    data = result.Data
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new
-                {
-                    statusCode = 500,
-                    status = "Exception Error",
-                    message = ex.Message,
-                    data = Array.Empty<object>()
-                });
-            }
-        }
-        #endregion
-
+        
     }
 }
