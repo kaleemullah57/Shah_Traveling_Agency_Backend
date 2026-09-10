@@ -169,7 +169,7 @@ namespace Shah_Traveling_Agency_API.Areas.BranchAdmin.Repositories
                 "Travel.Sp_Delete_Destinations_By_BranchAdmin",
                 parameters,
                 commandType: CommandType.StoredProcedure);
-
+             
             var message = parameters.Get<string>("@Message") ?? "Unknown error";
 
             return (result, message);
