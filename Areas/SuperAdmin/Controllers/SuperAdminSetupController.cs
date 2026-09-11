@@ -1429,6 +1429,164 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Controllers
                 })
             };
         }
+
+
+
+
+
+        // Get Services
+
+        [HttpPost("GetServices")]
+        public async Task<IActionResult> GetServices(GetServicesRequest vm)
+        {
+            try
+            {
+
+                var result = await _superAdminSetupRepo.GetServices(vm, UserId);
+
+
+                return result.StatusCode switch
+                {
+
+                    2 => Ok(new
+                    {
+                        status = true,
+                        statusCode = 200,
+                        message = result.Message,
+                        data = new
+                        {
+                            items = result.Data,
+                            totalCount = result.TotalCount
+                        },
+                        success = true
+                    }),
+
+
+                    1 => StatusCode(403, new
+                    {
+                        status = false,
+                        statusCode = 403,
+                        message = result.Message,
+                        data = (object?)null,
+                        success = false
+                    }),
+
+                    3 => NotFound(new
+                    {
+                        status = false,
+                        statusCode = 404,
+                        message = result.Message,
+                        data = new
+                        {
+                            items = result.Data,
+                            totalCount = result.TotalCount
+                        },
+                        success = false
+                    }),
+                    _ => StatusCode(500, new
+                    {
+                        status = false,
+                        statusCode = 500,
+                        message = result.Message,
+                        data = (object?)null,
+                        success = false
+                    })
+                };
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    status = false,
+                    statusCode = 500,
+                    message = ex.Message,
+                    data = (object?)null,
+                    success = false
+                });
+            }
+        }
+
+
+
+
+
+        // Delete Services
+        [HttpDelete("DeleteService/{serviceId}")]
+        public async Task<IActionResult> DeleteService(int serviceId)
+        {
+            try
+            {
+                if (serviceId <= 0)
+                {
+                    return BadRequest(new
+                    {
+                        status = false,
+                        statusCode = 400,
+                        message = "Invalid Service ID",
+                        data = (object?)null,
+                        success = false
+                    });
+                }
+
+                var result = await _superAdminSetupRepo.DeleteService(serviceId, UserId);
+
+
+                return result.StatusCode switch
+                {
+
+                    2 => Ok(new
+                    {
+                        status = true,
+                        statusCode = 200,
+                        message = result.Message,
+                        data = new
+                        {
+                            serviceId
+                        },
+                        success = true
+                    }),
+
+                    1 => StatusCode(403, new
+                    {
+                        status = false,
+                        statusCode = 403,
+                        message = result.Message,
+                        data = (object?)null,
+                        success = false
+                    }),
+
+
+                    3 => NotFound(new
+                    {
+                        status = false,
+                        statusCode = 404,
+                        message = result.Message,
+                        data = (object?)null,
+                        success = false
+                    }),
+
+                    _ => StatusCode(500, new
+                    {
+                        status = false,
+                        statusCode = 500,
+                        message = result.Message,
+                        data = (object?)null,
+                        success = false
+                    })
+                };
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    status = false,
+                    statusCode = 500,
+                    message = ex.Message,
+                    data = (object?)null,
+                    success = false
+                });
+            }
+        }
         #endregion
     }
 }

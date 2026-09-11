@@ -701,6 +701,8 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Repositories
         // Add Services
         public async Task<(int StatusCode, string Message)> AddService(AddServiceRequest model, int createdById)
         {
+            using var connection = _dapperContext.CreateConnection();
+
             var parameters = new DynamicParameters();
 
             parameters.Add("@ServiceName", model.ServiceName);
@@ -710,15 +712,104 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Repositories
 
             parameters.Add("@Message", dbType: DbType.String, size: -1, direction: ParameterDirection.Output);
 
-            var result = await _dapperContext.CreateConnection().QuerySingleAsync<int>(
+            parameters.Add("@ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
+
+            await connection.ExecuteAsync(
                 "Data.Sp_Add_Services",
                 parameters,
                 commandType: CommandType.StoredProcedure
             );
 
-            var message = parameters.Get<string>("@Message") ?? string.Empty;
+            int returnValue = parameters.Get<int>("@ReturnValue");
 
-            return (result, message);
+            string message = parameters.Get<string>("@Message") ?? "Unknown response";
+
+            return (returnValue, message);
+        }
+
+
+
+
+
+        // Get Services
+        public async Task<(int StatusCode, string Message, List<ServiceModel> Data, int TotalCount)> GetServices(GetServicesRequest vm, int userId)
+        {
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@Search", vm.Search, DbType.String, size: 200);
+
+            parameters.Add("@UserID", userId, DbType.Int32);
+
+            parameters.Add("@PageNumber", vm.PageNumber, DbType.Int32);
+
+            parameters.Add("@PageSize", vm.PageSize, DbType.Int32);
+
+            parameters.Add("@TotalCount", dbType: DbType.Int32, direction: ParameterDirection.Output);
+
+            parameters.Add("@Message", dbType: DbType.String, size: -1, direction: ParameterDirection.Output);
+
+            parameters.Add("@ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
+
+
+            using var connection = _dapperContext.CreateConnection();
+            var data = (
+                await connection.QueryAsync<ServiceModel>(
+                    "Data.Sp_Get_Services_By_SuperAdmin",
+                    parameters,
+                    commandType: CommandType.StoredProcedure
+                )
+            ).ToList();
+
+
+            int statusCode = parameters.Get<int>("@ReturnValue");
+
+            string message = parameters.Get<string>("@Message") ?? string.Empty;
+
+            int totalCount = parameters.Get<int>("@TotalCount");
+
+
+            return (
+                statusCode,
+                message,
+                data,
+                totalCount
+            );
+        }
+
+
+
+
+
+
+        // Delete Services
+        public async Task<(int StatusCode, string Message)> DeleteService(int serviceId, int userId)
+        {
+            using var connection = _dapperContext.CreateConnection();
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@ServiceId", serviceId, DbType.Int32);
+
+            parameters.Add("@UserID", userId, DbType.Int32);
+
+            parameters.Add("@Message", dbType: DbType.String, size: -1, direction: ParameterDirection.Output);
+
+            parameters.Add("@ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
+
+            await connection.ExecuteAsync(
+                "Data.SP_Delete_Services",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+
+            int statusCode = parameters.Get<int>("@ReturnValue");
+
+            string message = parameters.Get<string>("@Message") ?? "Unknown response";
+
+            return (
+                statusCode,
+                message
+            );
         }
         #endregion
     }
