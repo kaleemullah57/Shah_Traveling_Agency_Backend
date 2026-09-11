@@ -2,6 +2,7 @@
 using Shah_Traveling_Agency_API.Areas.Authentications.Dapper_Context;
 using Shah_Traveling_Agency_API.Areas.SuperAdmin.Models;
 using System.Data;
+using System.Data.Common;
 
 namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Repositories
 {
@@ -692,6 +693,33 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Repositories
             );
         }
 
+        #endregion
+
+        #region Services
+
+
+        // Add Services
+        public async Task<(int StatusCode, string Message)> AddService(AddServiceRequest model, int createdById)
+        {
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@ServiceName", model.ServiceName);
+            parameters.Add("@Description", model.Description);
+            parameters.Add("@IsActive", model.IsActive);
+            parameters.Add("@CreatedByID", createdById);
+
+            parameters.Add("@Message", dbType: DbType.String, size: -1, direction: ParameterDirection.Output);
+
+            var result = await _dapperContext.CreateConnection().QuerySingleAsync<int>(
+                "Data.Sp_Add_Services",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+
+            var message = parameters.Get<string>("@Message") ?? string.Empty;
+
+            return (result, message);
+        }
         #endregion
     }
 

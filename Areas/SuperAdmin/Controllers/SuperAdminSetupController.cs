@@ -1347,5 +1347,88 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Controllers
             }
         }
         #endregion
+
+        #region Services
+
+        // Add Services
+        [HttpPost("AddService")]
+        public async Task<IActionResult> AddService([FromBody] AddServiceRequest model)
+        {
+            if (model == null)
+            {
+                return BadRequest(new
+                {
+                    status = false,
+                    statusCode = 400,
+                    message = "Invalid request",
+                    data = (object?)null,
+                    success = false
+                });
+            }
+
+            if (string.IsNullOrWhiteSpace(model.ServiceName))
+            {
+                return BadRequest(new
+                {
+                    status = false,
+                    statusCode = 400,
+                    message = "Service name is required",
+                    data = (object?)null,
+                    success = false
+                });
+            }
+
+
+            var result = await _superAdminSetupRepo.AddService(model, UserId);
+
+            return result.StatusCode switch
+            {
+                3 => Ok(new
+                {
+                    status = true,
+                    statusCode = 200,
+                    message = result.Message,
+                    data = (object?)null,
+                    success = true
+                }),
+
+                1 => StatusCode(403, new
+                {
+                    status = false,
+                    statusCode = 403,
+                    message = result.Message,
+                    data = (object?)null,
+                    success = false
+                }),
+
+                2 => Conflict(new
+                {
+                    status = false,
+                    statusCode = 409,
+                    message = result.Message,
+                    data = (object?)null,
+                    success = false
+                }),
+
+                4 => BadRequest(new
+                {
+                    status = false,
+                    statusCode = 400,
+                    message = result.Message,
+                    data = (object?)null,
+                    success = false
+                }),
+
+                _ => StatusCode(500, new
+                {
+                    status = false,
+                    statusCode = 500,
+                    message = result.Message,
+                    data = (object?)null,
+                    success = false
+                })
+            };
+        }
+        #endregion
     }
 }
