@@ -447,6 +447,80 @@ namespace Shah_Traveling_Agency_API.Areas.BranchAdmin.Controllers
                     });
             }
         }
+
+
+
+
+
+        // Delete Branch Services
+        [HttpDelete("DeleteBranchService/{branchServiceId}")]
+        public async Task<IActionResult> DeleteBranchService(int branchServiceId)
+        {
+            try
+            {
+
+                var result = await _branchAdminRepo.DeleteBranchService(branchServiceId, BranchId, UserId);
+                if (result.StatusCode == 1)
+                {
+                    return StatusCode(
+                        StatusCodes.Status403Forbidden,
+                        new
+                        {
+                            status = false,
+                            statusCode = 403,
+                            message = result.Message,
+                            data = Array.Empty<object>(),
+                            success = false
+                        });
+                }
+                if (result.StatusCode == 2)
+                {
+                    return Ok(
+                        new
+                        {
+                            status = true,
+                            statusCode = 200,
+                            message = result.Message,
+                            data = Array.Empty<object>(),
+                            success = true
+                        });
+                }
+                if (result.StatusCode == 3)
+                {
+                    return NotFound(
+                        new
+                        {
+                            status = false,
+                            statusCode = 404,
+                            message = result.Message,
+                            data = Array.Empty<object>(),
+                            success = false
+                        });
+                }
+                return BadRequest(
+                    new
+                    {
+                        status = false,
+                        statusCode = 400,
+                        message = result.Message,
+                        data = Array.Empty<object>(),
+                        success = false
+                    });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    new
+                    {
+                        status = false,
+                        statusCode = 500,
+                        message = ex.Message,
+                        data = Array.Empty<object>(),
+                        success = false
+                    });
+            }
+        }
         #endregion
 
 

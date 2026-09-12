@@ -258,6 +258,40 @@ namespace Shah_Traveling_Agency_API.Areas.BranchAdmin.Repositories
                 totalCount
             );
         }
+
+
+
+
+
+
+        // Delete Branch Services
+        public async Task<(int StatusCode, string Message)> DeleteBranchService(int branchServiceId, int branchId, int userId)
+        {
+            using var connection = _dapperContext.CreateConnection();
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@BranchServiceId", branchServiceId, DbType.Int32);
+
+            parameters.Add("@UserID", userId, DbType.Int32);
+
+            parameters.Add("@BranchId", branchId, DbType.Int32);
+
+            parameters.Add("@Message", dbType: DbType.String, size: -1, direction: ParameterDirection.Output);
+
+            parameters.Add("@ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
+
+            await connection.ExecuteAsync(
+                "Travel.Sp_Delete_BranchServices",
+                parameters,
+                commandType: CommandType.StoredProcedure);
+
+            int statusCode = parameters.Get<int>("@ReturnValue");
+
+            string message = parameters.Get<string>("@Message") ?? "Unknown response";
+
+            return (statusCode, message);
+        }
         #endregion
     }
 }
