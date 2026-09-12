@@ -56,4 +56,26 @@
 
         public bool IsActive { get; set; } = true;
     }
+
+
+
+
+
+    // Edit Airline
+    public class EditAirlineRequest
+    {
+        public int AirlineId { get; set; }
+
+        public string AirlineName { get; set; } = string.Empty;
+
+        public string AirlineCode { get; set; } = string.Empty;
+
+        public string IATACode { get; set; } = string.Empty;
+
+        public string ICAOCode { get; set; } = string.Empty;
+
+        public int CountryId { get; set; }
+
+        public bool IsActive { get; set; } = true;
+    }
 }

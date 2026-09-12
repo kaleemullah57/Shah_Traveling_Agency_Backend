@@ -1346,6 +1346,193 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Controllers
                 });
             }
         }
+
+
+
+
+
+
+        // Edit Airlines
+        [HttpPut("EditAirline")]
+        public async Task<IActionResult> EditAirline([FromBody] EditAirlineRequest model)
+        {
+            try
+            {
+
+                if (model == null)
+                {
+                    return BadRequest(new
+                    {
+                        status = false,
+                        statusCode = 400,
+                        message = "Invalid request",
+                        data = (object?)null,
+                        success = false
+                    });
+                }
+
+
+                if (model.AirlineId <= 0)
+                {
+                    return BadRequest(new
+                    {
+                        status = false,
+                        statusCode = 400,
+                        message = "Invalid Airline ID",
+                        data = (object?)null,
+                        success = false
+                    });
+                }
+
+
+
+                if (model.CountryId <= 0)
+                {
+                    return BadRequest(new
+                    {
+                        status = false,
+                        statusCode = 400,
+                        message = "Country is required",
+                        data = (object?)null,
+                        success = false
+                    });
+                }
+
+
+                var result = await _superAdminSetupRepo.EditAirline(model, UserId);
+
+                return result.StatusCode switch
+                {
+                    3 => Ok(new
+                    {
+                        status = true,
+                        statusCode = 200,
+                        message = result.Message,
+                        data = new
+                        {
+                            airlineId = model.AirlineId
+                        },
+                        success = true
+                    }),
+
+                    2 => Conflict(new
+                    {
+                        status = false,
+                        statusCode = 409,
+                        message = result.Message,
+                        data = (object?)null,
+                        success = false
+                    }),
+
+                    1 => StatusCode(403, new
+                    {
+                        status = false,
+                        statusCode = 403,
+                        message = result.Message,
+                        data = (object?)null,
+                        success = false
+                    }),
+
+                    4 => NotFound(new
+                    {
+                        status = false,
+                        statusCode = 404,
+                        message = result.Message,
+                        data = (object?)null,
+                        success = false
+                    }),
+
+                    _ => StatusCode(500, new
+                    {
+                        status = false,
+                        statusCode = 500,
+                        message = result.Message,
+                        data = (object?)null,
+                        success = false
+                    })
+                };
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    status = false,
+                    statusCode = 500,
+                    message = ex.Message,
+                    data = (object?)null,
+                    success = false
+                });
+            }
+        }
+
+
+
+
+
+        // Delete Airliens
+        [HttpDelete("DeleteAirline/{airlineId}")]
+        public async Task<IActionResult> DeleteAirline(int airlineId)
+        {
+            try
+            {
+                var result = await _superAdminSetupRepo.DeleteAirline(airlineId, UserId);
+
+                return result.StatusCode switch
+                {
+
+                    2 => Ok(new
+                    {
+                        status = true,
+                        statusCode = 200,
+                        message = result.Message,
+                        data = new
+                        {
+                            airlineId = airlineId
+                        },
+                        success = true
+                    }),
+
+                    1 => StatusCode(403, new
+                    {
+                        status = false,
+                        statusCode = 403,
+                        message = result.Message,
+                        data = (object?)null,
+                        success = false
+                    }),
+
+                    3 => BadRequest(new
+                    {
+                        status = false,
+                        statusCode = 400,
+                        message = result.Message,
+                        data = (object?)null,
+                        success = false
+                    }),
+
+                    _ => StatusCode(500, new
+                    {
+                        status = false,
+                        statusCode = 500,
+                        message = result.Message,
+                        data = (object?)null,
+                        success = false
+                    })
+                };
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    status = false,
+                    statusCode = 500,
+                    message = ex.Message,
+                    data = (object?)null,
+                    success = false
+                });
+            }
+        }
+
         #endregion
 
         #region Services
@@ -1554,6 +1741,115 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Controllers
                         data = (object?)null,
                         success = false
                     }),
+
+
+                    3 => NotFound(new
+                    {
+                        status = false,
+                        statusCode = 404,
+                        message = result.Message,
+                        data = (object?)null,
+                        success = false
+                    }),
+
+                    _ => StatusCode(500, new
+                    {
+                        status = false,
+                        statusCode = 500,
+                        message = result.Message,
+                        data = (object?)null,
+                        success = false
+                    })
+                };
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    status = false,
+                    statusCode = 500,
+                    message = ex.Message,
+                    data = (object?)null,
+                    success = false
+                });
+            }
+        }
+
+
+
+
+
+        // Edit Services
+        [HttpPut("EditService")]
+        public async Task<IActionResult> EditService(EditServiceRequest model)
+        {
+            try
+            {
+
+                if (model == null)
+                {
+                    return BadRequest(new
+                    {
+                        status = false,
+                        statusCode = 400,
+                        message = "Invalid request",
+                        data = (object?)null,
+                        success = false
+                    });
+                }
+
+
+                if (model.ServiceId <= 0)
+                {
+                    return BadRequest(new
+                    {
+                        status = false,
+                        statusCode = 400,
+                        message = "Invalid Service ID",
+                        data = (object?)null,
+                        success = false
+                    });
+                }
+
+
+                if (string.IsNullOrWhiteSpace(model.ServiceName))
+                {
+                    return BadRequest(new
+                    {
+                        status = false,
+                        statusCode = 400,
+                        message = "Service name is required",
+                        data = (object?)null,
+                        success = false
+                    });
+                }
+
+                var result = await _superAdminSetupRepo.EditService(model, UserId);
+
+                return result.StatusCode switch
+                {
+
+                    2 => Ok(new
+                    {
+                        status = true,
+                        statusCode = 200,
+                        message = result.Message,
+                        data = new
+                        {
+                            serviceId = model.ServiceId
+                        },
+                        success = true
+                    }),
+
+                    1 => StatusCode(403, new
+                    {
+                        status = false,
+                        statusCode = 403,
+                        message = result.Message,
+                        data = (object?)null,
+                        success = false
+                    }),
+
 
 
                     3 => NotFound(new

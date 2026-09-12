@@ -693,6 +693,87 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Repositories
             );
         }
 
+
+
+
+
+
+
+
+
+        // Edit Airlines
+        public async Task<(int StatusCode, string Message)> EditAirline(EditAirlineRequest vm, int userId)
+        {
+            using var connection = _dapperContext.CreateConnection();
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@AirlineId", vm.AirlineId, DbType.Int32);
+
+            parameters.Add("@AirlineName", vm.AirlineName, DbType.String, size: 200);
+
+            parameters.Add("@AirlineCode", vm.AirlineCode, DbType.String, size: 200);
+
+            parameters.Add("@IATACode", vm.IATACode, DbType.String, size: 200);
+
+            parameters.Add("@ICAOCode", vm.ICAOCode, DbType.String, size: 200);
+
+            parameters.Add("@CountryId", vm.CountryId, DbType.Int32);
+
+            parameters.Add("@IsActive", vm.IsActive, DbType.Boolean);
+
+            parameters.Add("@UserId", userId, DbType.Int32);
+
+            parameters.Add("@Message", dbType: DbType.String, size: -1, direction: ParameterDirection.Output);
+
+            parameters.Add("@ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
+
+
+            await connection.ExecuteAsync(
+                "Data.Sp_Edit_Airlines",
+                parameters,
+                commandType: CommandType.StoredProcedure);
+
+
+            int statusCode = parameters.Get<int>("@ReturnValue");
+
+            string message = parameters.Get<string>("@Message") ?? "Unknown response";
+
+
+            return (statusCode, message);
+        }
+
+
+
+
+
+        // Delete Airlines
+        public async Task<(int StatusCode, string Message)> DeleteAirline(int airlineId, int userId)
+        {
+            using var connection = _dapperContext.CreateConnection();
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@AirlineId", airlineId, DbType.Int32);
+            parameters.Add("@UserID", userId, DbType.Int32);
+
+            parameters.Add("@Message", dbType: DbType.String, size: -1, direction: ParameterDirection.Output);
+
+            parameters.Add("@ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
+
+            await connection.ExecuteAsync(
+                "Data.Sp_Delete_Airlines",
+                parameters,
+                commandType: CommandType.StoredProcedure);
+
+            int statusCode = parameters.Get<int>("@ReturnValue");
+
+            string message = parameters.Get<string>("@Message") ?? "Unknown response";
+
+            return (statusCode, message);
+        }
+
+
         #endregion
 
         #region Services
@@ -805,6 +886,51 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Repositories
             int statusCode = parameters.Get<int>("@ReturnValue");
 
             string message = parameters.Get<string>("@Message") ?? "Unknown response";
+
+            return (
+                statusCode,
+                message
+            );
+        }
+
+
+
+
+
+
+        // Edit Services
+        public async Task<(int StatusCode, string Message)> EditService(EditServiceRequest vm, int userId)
+        {
+            using var connection = _dapperContext.CreateConnection();
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@ServiceId", vm.ServiceId, DbType.Int32);
+
+            parameters.Add("@ServiceName", vm.ServiceName, DbType.String, size: 200);
+
+            parameters.Add("@Description", vm.Description, DbType.String);
+
+            parameters.Add("@IsActive", vm.IsActive, DbType.Boolean);
+
+            parameters.Add("@UserID", userId, DbType.Int32);
+
+            parameters.Add("@Message", dbType: DbType.String, size: -1, direction: ParameterDirection.Output);
+
+            parameters.Add("@ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
+
+
+            await connection.ExecuteAsync(
+                "Data.Sp_Edit_Services",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+
+
+            int statusCode = parameters.Get<int>("@ReturnValue");
+
+            string message = parameters.Get<string>("@Message") ?? "Unknown response";
+
 
             return (
                 statusCode,
