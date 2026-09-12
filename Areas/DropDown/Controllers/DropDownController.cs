@@ -106,7 +106,60 @@ namespace Shah_Traveling_Agency_API.Areas.DropDown.Controllers
         }
         #endregion
 
+        #region Services
 
-        
+        [HttpGet("GetServicesDropDown")]
+        public async Task<IActionResult> GetServices([FromQuery] string? search = null)
+        {
+            try
+            {
+                var result = await _dropDownRepo.GetServices(search);
+
+                return result.StatusCode switch
+                {
+                    1 => Ok(new
+                    {
+                        status = true,
+                        statusCode = 200,
+                        message = result.Message,
+                        data = result.Data,
+                        success = true
+                    }),
+
+                    2 => NotFound(new
+                    {
+                        status = false,
+                        statusCode = 404,
+                        message = result.Message,
+                        data = Array.Empty<object>(),
+                        success = false
+                    }),
+
+                    _ => StatusCode(500, new
+                    {
+                        status = false,
+                        statusCode = 500,
+                        message = result.Message,
+                        data = (object?)null,
+                        success = false
+                    })
+                };
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    status = false,
+                    statusCode = 500,
+                    message = ex.Message,
+                    data = (object?)null,
+                    success = false
+                });
+            }
+        }
+
+        #endregion
+
+
     }
 }

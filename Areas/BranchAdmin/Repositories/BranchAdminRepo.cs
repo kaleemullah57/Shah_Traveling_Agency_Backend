@@ -181,13 +181,13 @@ namespace Shah_Traveling_Agency_API.Areas.BranchAdmin.Repositories
 
 
         // Add Branch Services
-        public async Task<(int StatusCode, string Message)> AddBranchService(AddBranchServiceModel model, int userId)
+        public async Task<(int StatusCode, string Message)> AddBranchService(AddBranchServiceModel model, int userId, int BranchId)
         {
             using var connection = _dapperContext.CreateConnection();
 
             var parameters = new DynamicParameters();
 
-            parameters.Add("@BranchId", model.BranchId, DbType.Int32);
+            parameters.Add("@BranchId", BranchId, DbType.Int32);
 
             parameters.Add("@ServiceId", model.ServiceId, DbType.Int32);
 
@@ -211,6 +211,52 @@ namespace Shah_Traveling_Agency_API.Areas.BranchAdmin.Repositories
             string message = parameters.Get<string>("@Message") ?? "Unknown response";
 
             return (statusCode, message);
+        }
+
+
+
+
+
+        // Get Branch Services
+        public async Task<(int StatusCode, string Message, IEnumerable<BranchServiceModel> Data, int TotalCount)> GetBranchServicesByBranchAdmin(BranchServicesRequest request, int branchId, int userId)
+        {
+            using var connection = _dapperContext.CreateConnection();
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@Search", request.Search, DbType.String, size: 200);
+
+            parameters.Add("@PageNumber", request.PageNumber, DbType.Int32);
+
+            parameters.Add("@PageSize", request.PageSize, DbType.Int32);
+
+            parameters.Add("@BranchId", branchId, DbType.Int32);
+
+            parameters.Add("@UserID", userId, DbType.Int32);
+
+            parameters.Add("@TotalCount", dbType: DbType.Int32, direction: ParameterDirection.Output);
+
+            parameters.Add("@Message", dbType: DbType.String, size: -1, direction: ParameterDirection.Output);
+
+            parameters.Add("@ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
+
+            var data = await connection.QueryAsync<BranchServiceModel>(
+                "Travel.Sp_Get_BranchServices_By_BranchAdmin",
+                parameters,
+                commandType: CommandType.StoredProcedure);
+
+            var statusCode = parameters.Get<int>("@ReturnValue");
+
+            var message = parameters.Get<string>("@Message") ?? "Unknown response";
+
+            var totalCount = parameters.Get<int?>("@TotalCount") ?? 0;
+
+            return (
+                statusCode,
+                message,
+                data,
+                totalCount
+            );
         }
         #endregion
     }

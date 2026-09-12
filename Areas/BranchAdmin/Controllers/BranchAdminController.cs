@@ -271,17 +271,6 @@ namespace Shah_Traveling_Agency_API.Areas.BranchAdmin.Controllers
                     });
                 }
 
-                if (model.BranchId <= 0)
-                {
-                    return BadRequest(new
-                    {
-                        status = false,
-                        statusCode = 400,
-                        message = "Invalid Branch ID",
-                        data = (object?)null,
-                        success = false
-                    });
-                }
 
                 if (model.ServiceId <= 0)
                 {
@@ -307,7 +296,7 @@ namespace Shah_Traveling_Agency_API.Areas.BranchAdmin.Controllers
                     });
                 }
 
-                var result = await _branchAdminRepo.AddBranchService(model, UserId);
+                var result = await _branchAdminRepo.AddBranchService(model, UserId, BranchId);
 
                 return result.StatusCode switch
                 {
@@ -318,7 +307,7 @@ namespace Shah_Traveling_Agency_API.Areas.BranchAdmin.Controllers
                         message = result.Message,
                         data = new
                         {
-                            branchId = model.BranchId,
+                            branchId = BranchId,
                             serviceId = model.ServiceId,
                             branchServiceName = model.BranchServiceName,
                             isActive = model.IsActive
@@ -373,6 +362,89 @@ namespace Shah_Traveling_Agency_API.Areas.BranchAdmin.Controllers
                     data = (object?)null,
                     success = false
                 });
+            }
+        }
+
+
+
+
+
+
+        // Get Branch Services
+        [HttpPost("GetBranchServices")]
+        public async Task<IActionResult> GetBranchServices(BranchServicesRequest request)
+        {
+            try
+            {
+                var result = await _branchAdminRepo.GetBranchServicesByBranchAdmin(request, BranchId, UserId);
+
+                if (result.StatusCode == 1)
+                {
+                    return StatusCode(
+                        StatusCodes.Status403Forbidden,
+                        new
+                        {
+                            status = false,
+                            statusCode = 403,
+                            message = result.Message,
+                            data = Array.Empty<BranchServiceModel>(),
+                            totalCount = 0,
+                            success = false
+                        });
+                }
+
+                if (result.StatusCode == 3)
+                {
+                    return NotFound(
+                        new
+                        {
+                            status = false,
+                            statusCode = 404,
+                            message = result.Message,
+                            data = Array.Empty<BranchServiceModel>(),
+                            totalCount = 0,
+                            success = false
+                        });
+                }
+
+                if (result.StatusCode == 2)
+                {
+                    return Ok(
+                        new
+                        {
+                            status = true,
+                            statusCode = 200,
+                            message = result.Message,
+                            data = result.Data,
+                            totalCount = result.TotalCount,
+                            success = true
+                        });
+                }
+
+                return BadRequest(
+                    new
+                    {
+                        status = false,
+                        statusCode = 400,
+                        message = result.Message,
+                        data = Array.Empty<BranchServiceModel>(),
+                        totalCount = 0,
+                        success = false
+                    });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    new
+                    {
+                        status = false,
+                        statusCode = 500,
+                        message = ex.Message,
+                        data = Array.Empty<BranchServiceModel>(),
+                        totalCount = 0,
+                        success = false
+                    });
             }
         }
         #endregion

@@ -88,5 +88,37 @@ namespace Shah_Traveling_Agency_API.Areas.DropDown.Repositories
         }
         #endregion
 
+        #region Services
+
+        public async Task<(int StatusCode, string Message, IEnumerable<dynamic> Data)> GetServices(string? search)
+        {
+            using var connection = _dapperContext.CreateConnection();
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@Search", string.IsNullOrWhiteSpace(search) ? null : search, DbType.String, size: 200);
+
+            parameters.Add("@Message", dbType: DbType.String, size: -1, direction: ParameterDirection.Output);
+
+            parameters.Add("@ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
+
+            var data = await connection.QueryAsync(
+                "DropDown.Sp_Services",
+                parameters,
+                commandType: CommandType.StoredProcedure);
+
+            int statusCode = parameters.Get<int>("@ReturnValue");
+
+            string message = parameters.Get<string>("@Message") ?? "Unknown response";
+
+            return (
+                statusCode,
+                message,
+                data
+            );
+        }
+
+
+        #endregion
     }
 }
