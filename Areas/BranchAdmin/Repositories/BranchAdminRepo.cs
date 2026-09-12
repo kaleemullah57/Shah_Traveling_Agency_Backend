@@ -169,12 +169,49 @@ namespace Shah_Traveling_Agency_API.Areas.BranchAdmin.Repositories
                 "Travel.Sp_Delete_Destinations_By_BranchAdmin",
                 parameters,
                 commandType: CommandType.StoredProcedure);
-             
+
             var message = parameters.Get<string>("@Message") ?? "Unknown error";
 
             return (result, message);
         }
 
+        #endregion
+
+        #region Branch Services
+
+
+        // Add Branch Services
+        public async Task<(int StatusCode, string Message)> AddBranchService(AddBranchServiceModel model, int userId)
+        {
+            using var connection = _dapperContext.CreateConnection();
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@BranchId", model.BranchId, DbType.Int32);
+
+            parameters.Add("@ServiceId", model.ServiceId, DbType.Int32);
+
+            parameters.Add("@BranchServiceName", model.BranchServiceName, DbType.String, size: 200);
+
+            parameters.Add("@IsActive", model.IsActive, DbType.Boolean);
+
+            parameters.Add("@UserID", userId, DbType.Int32);
+
+            parameters.Add("@Message", dbType: DbType.String, size: -1, direction: ParameterDirection.Output);
+
+            parameters.Add("@ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
+
+            await connection.ExecuteAsync(
+                "Travel.Sp_Add_BranchServices",
+                parameters,
+                commandType: CommandType.StoredProcedure);
+
+            int statusCode = parameters.Get<int>("@ReturnValue");
+
+            string message = parameters.Get<string>("@Message") ?? "Unknown response";
+
+            return (statusCode, message);
+        }
         #endregion
     }
 }

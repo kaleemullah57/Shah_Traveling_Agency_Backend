@@ -251,7 +251,131 @@ namespace Shah_Traveling_Agency_API.Areas.BranchAdmin.Controllers
 
         #endregion
 
+        #region Branch Services
 
+        // Add Branch Services
+        [HttpPost("AddBranchService")]
+        public async Task<IActionResult> AddBranchService([FromBody] AddBranchServiceModel model)
+        {
+            try
+            {
+                if (model == null)
+                {
+                    return BadRequest(new
+                    {
+                        status = false,
+                        statusCode = 400,
+                        message = "Invalid request",
+                        data = (object?)null,
+                        success = false
+                    });
+                }
+
+                if (model.BranchId <= 0)
+                {
+                    return BadRequest(new
+                    {
+                        status = false,
+                        statusCode = 400,
+                        message = "Invalid Branch ID",
+                        data = (object?)null,
+                        success = false
+                    });
+                }
+
+                if (model.ServiceId <= 0)
+                {
+                    return BadRequest(new
+                    {
+                        status = false,
+                        statusCode = 400,
+                        message = "Invalid Service ID",
+                        data = (object?)null,
+                        success = false
+                    });
+                }
+
+                if (string.IsNullOrWhiteSpace(model.BranchServiceName))
+                {
+                    return BadRequest(new
+                    {
+                        status = false,
+                        statusCode = 400,
+                        message = "Branch Service Name is required",
+                        data = (object?)null,
+                        success = false
+                    });
+                }
+
+                var result = await _branchAdminRepo.AddBranchService(model, UserId);
+
+                return result.StatusCode switch
+                {
+                    3 => Ok(new
+                    {
+                        status = true,
+                        statusCode = 200,
+                        message = result.Message,
+                        data = new
+                        {
+                            branchId = model.BranchId,
+                            serviceId = model.ServiceId,
+                            branchServiceName = model.BranchServiceName,
+                            isActive = model.IsActive
+                        },
+                        success = true
+                    }),
+
+                    2 => Conflict(new
+                    {
+                        status = false,
+                        statusCode = 409,
+                        message = result.Message,
+                        data = (object?)null,
+                        success = false
+                    }),
+
+                    1 => StatusCode(403, new
+                    {
+                        status = false,
+                        statusCode = 403,
+                        message = result.Message,
+                        data = (object?)null,
+                        success = false
+                    }),
+
+                    4 => BadRequest(new
+                    {
+                        status = false,
+                        statusCode = 400,
+                        message = result.Message,
+                        data = (object?)null,
+                        success = false
+                    }),
+
+                    _ => StatusCode(500, new
+                    {
+                        status = false,
+                        statusCode = 500,
+                        message = result.Message,
+                        data = (object?)null,
+                        success = false
+                    })
+                };
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    status = false,
+                    statusCode = 500,
+                    message = ex.Message,
+                    data = (object?)null,
+                    success = false
+                });
+            }
+        }
+        #endregion
 
 
     }
