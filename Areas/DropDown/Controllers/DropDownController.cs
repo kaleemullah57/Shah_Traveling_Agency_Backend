@@ -58,7 +58,7 @@ namespace Shah_Traveling_Agency_API.Areas.DropDown.Controllers
         #region Provinces
 
         [HttpGet("GetProvincesByCountryId")]
-        public async Task<IActionResult> GetProvincesByCountryId([FromQuery] int countryId)
+        public async Task<IActionResult> GetProvincesByCountryId(int countryId)
         {
             try
             {
@@ -102,6 +102,84 @@ namespace Shah_Traveling_Agency_API.Areas.DropDown.Controllers
                     status = "Exception Error",
                     message = ex.Message,
                     data = Array.Empty<object>()
+                });
+            }
+        }
+        #endregion
+
+        #region Cities DropDown
+        [HttpGet("GetCitiesByProvinceId")]
+        public async Task<IActionResult> GetCitiesByProvinceId([FromQuery] int provinceId)
+        {
+            try
+            {
+                if (provinceId <= 0)
+                {
+                    return BadRequest(new
+                    {
+                        status = false,
+                        statusCode = 400,
+                        message = "A valid ProvinceId is required",
+                        data = new List<object>(),
+                        success = false
+                    });
+                }
+
+                var result = await _dropDownRepo.GetCitiesByProvinceIdAsync(provinceId);
+
+                if (result.ReturnValue == 0)
+                {
+                    return StatusCode(500, new
+                    {
+                        status = false,
+                        statusCode = 500,
+                        message = result.Message ?? "An error occurred while fetching cities",
+                        data = new List<object>(),
+                        success = false
+                    });
+                }
+                if (result.ReturnValue == 1)
+                {
+                    return Ok(new
+                    {
+                        status = true,
+                        statusCode = 200,
+                        message = result.Message ?? "Cities fetched successfully",
+                        data = result.Data,
+                        success = true
+                    });
+                }
+
+                if (result.ReturnValue == 2)
+                {
+                    return NotFound(new
+                    {
+                        status = false,
+                        statusCode = 404,
+                        message = result.Message ?? "Cities not found",
+                        data = new List<object>(),
+                        success = false
+                    });
+                }
+
+                return StatusCode(500, new
+                {
+                    status = false,
+                    statusCode = 500,
+                    message = "Unexpected response from database",
+                    data = new List<object>(),
+                    success = false
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    status = false,
+                    statusCode = 500,
+                    message = ex.Message,
+                    data = new List<object>(),
+                    success = false
                 });
             }
         }
