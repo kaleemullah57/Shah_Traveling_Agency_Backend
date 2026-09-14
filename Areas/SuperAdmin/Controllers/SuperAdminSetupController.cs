@@ -1700,6 +1700,89 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Controllers
                     });
             }
         }
+
+
+
+
+        // Update Airports
+        [HttpPut("UpdateAirport")]
+        public async Task<IActionResult> UpdateAirport([FromBody] UpdateAirportRequest request)
+        {
+            try
+            {
+                var result = await _superAdminSetupRepo.UpdateAirportAsync(request, UserId);
+
+                switch (result.StatusCode)
+                {
+                    case 3:
+
+                        return Ok(new
+                        {
+                            status = true,
+                            statusCode = 200,
+                            message = result.Message,
+                            data = (object?)null,
+                            success = true
+                        });
+
+                    case 1:
+
+                        return StatusCode(403, new
+                        {
+                            status = false,
+                            statusCode = 403,
+                            message = result.Message,
+                            data = (object?)null,
+                            success = false
+                        });
+
+                    case 2:
+
+                        return Conflict(new
+                        {
+                            status = false,
+                            statusCode = 409,
+                            message = result.Message,
+                            data = (object?)null,
+                            success = false
+                        });
+
+                    case 4:
+
+                        return BadRequest(new
+                        {
+                            status = false,
+                            statusCode = 400,
+                            message = result.Message,
+                            data = (object?)null,
+                            success = false
+                        });
+
+
+                    default:
+
+                        return StatusCode(500, new
+                        {
+                            status = false,
+                            statusCode = 500,
+                            message = result.Message,
+                            data = (object?)null,
+                            success = false
+                        });
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    status = false,
+                    statusCode = 500,
+                    message = ex.Message,
+                    data = (object?)null,
+                    success = false
+                });
+            }
+        }
         #endregion
 
         #region Services

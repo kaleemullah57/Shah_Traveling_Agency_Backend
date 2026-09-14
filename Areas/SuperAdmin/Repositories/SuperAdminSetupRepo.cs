@@ -855,6 +855,47 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Repositories
                 message
             );
         }
+
+
+
+
+
+        // Update Airports
+        public async Task<(int StatusCode, string Message)> UpdateAirportAsync(UpdateAirportRequest request, int userId)
+        {
+            using var connection = _dapperContext.CreateConnection();
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@AirportId", request.AirportId);
+            parameters.Add("@AirportName", request.AirportName);
+            parameters.Add("@IataCode", request.IataCode);
+            parameters.Add("@IcaoCode", request.IcaoCode);
+            parameters.Add("@CountryId", request.CountryId);
+            parameters.Add("@ProviceId", request.ProvinceId);
+            parameters.Add("@CityId", request.CityId);
+            parameters.Add("@IsInternational", request.IsInternational);
+            parameters.Add("@IsActive", request.IsActive);
+            parameters.Add("@UserID", userId);
+
+            parameters.Add("@Message", dbType: DbType.String, size: -1, direction: ParameterDirection.Output);
+
+            parameters.Add("@ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
+
+            await connection.ExecuteAsync(
+                "Data.SP_Update_Airports",
+                parameters,
+                commandType: CommandType.StoredProcedure);
+
+            var statusCode = parameters.Get<int>("@ReturnValue");
+
+            var message = parameters.Get<string>("@Message") ?? string.Empty;
+
+            return (
+                statusCode,
+                message
+            );
+        }
         #endregion
 
         #region Services
