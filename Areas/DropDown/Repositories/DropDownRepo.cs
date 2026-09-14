@@ -1,5 +1,7 @@
 ﻿using Dapper;
+using Microsoft.Data.SqlClient;
 using Shah_Traveling_Agency_API.Areas.Authentications.Dapper_Context;
+using Shah_Traveling_Agency_API.Areas.SuperAdmin.Models;
 using System.Data;
 
 namespace Shah_Traveling_Agency_API.Areas.DropDown.Repositories
@@ -120,5 +122,84 @@ namespace Shah_Traveling_Agency_API.Areas.DropDown.Repositories
 
 
         #endregion
+
+        #region Branches
+
+        public async Task<(int StatusCode, string Message, IEnumerable<dynamic> Data)> GetBranchesAsync(int userId)
+        {
+            try
+            {
+                using var connection = _dapperContext.CreateConnection();
+
+                var parameters = new DynamicParameters();
+
+                parameters.Add("@UserID", userId);
+
+                parameters.Add("@Message", dbType: DbType.String, direction: ParameterDirection.Output, size: -1);
+
+                var data = await connection.QueryAsync(
+                    "DropDown.Sp_Get_Branches",
+                    parameters,
+                    commandType: CommandType.StoredProcedure);
+
+                var message = parameters.Get<string>("@Message") ?? "";
+
+                return (
+                    data.Any() ? 2 : 0,
+                    message,
+                    data
+                );
+            }
+            catch (Exception ex)
+            {
+                return (
+                    0,
+                    ex.Message,
+                    Enumerable.Empty<dynamic>()
+                );
+            }
+        }
+
+
+        #endregion
+
+        #region User Types
+
+        public async Task<(int StatusCode, string Message, IEnumerable<dynamic> Data)> GetUserTypesAsync(int userId)
+        {
+            try
+            {
+                using var connection = _dapperContext.CreateConnection();
+
+                var parameters = new DynamicParameters();
+
+                parameters.Add("@UserID", userId);
+
+                parameters.Add("@Message", dbType: DbType.String, direction: ParameterDirection.Output, size: -1);
+
+                var data = await connection.QueryAsync(
+                    "DropDown.Sp_Get_UserTypes",
+                    parameters,
+                    commandType: CommandType.StoredProcedure);
+
+                var message = parameters.Get<string>("@Message") ?? string.Empty;
+
+                return (
+                    data.Any() ? 2 : 0,
+                    message,
+                    data
+                );
+            }
+            catch (Exception ex)
+            {
+                return (
+                    0,
+                    ex.Message,
+                    Enumerable.Empty<dynamic>()
+                );
+            }
+        }
+        #endregion
     }
 }
+

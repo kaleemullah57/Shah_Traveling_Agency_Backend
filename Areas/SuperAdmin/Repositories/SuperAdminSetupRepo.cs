@@ -1092,6 +1092,57 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Repositories
             );
         }
         #endregion
+
+        #region Get All Users
+        public async Task<(List<UserModel> Data, int TotalCount, int StatusCode, string Message)> GetUsersAsync(GetAllUsersVM vm, int userId)
+        {
+            try
+            {
+                using var connection = _dapperContext.CreateConnection();
+
+                var parameters = new DynamicParameters();
+
+                parameters.Add("@Search", vm.search);
+                parameters.Add("@PageNumber", vm.PageNumber);
+                parameters.Add("@PageSize", vm.PageSize);
+                parameters.Add("@UserID", userId);
+
+                parameters.Add("@TotalCount", dbType: DbType.Int32, direction: ParameterDirection.Output);
+
+                parameters.Add("@Message", dbType: DbType.String, direction: ParameterDirection.Output, size: -1);
+
+                parameters.Add("@ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
+
+                var data = (await connection.QueryAsync<UserModel>(
+                    "Data.Sp_Get_Users",
+                    parameters,
+                    commandType: CommandType.StoredProcedure
+                )).ToList();
+
+                var totalCount = parameters.Get<int?>("@TotalCount") ?? 0;
+
+                var message = parameters.Get<string>("@Message") ?? string.Empty;
+
+                var statusCode = parameters.Get<int?>("@ReturnValue") ?? 0;
+
+                return (
+                    data,
+                    totalCount,
+                    statusCode,
+                    message
+                );
+            }
+            catch (Exception ex)
+            {
+                return (
+                    new List<UserModel>(),
+                    0,
+                    0,
+                    ex.Message
+                );
+            }
+        }
+        #endregion
     }
 
 }

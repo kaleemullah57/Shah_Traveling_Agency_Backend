@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Shah_Traveling_Agency_API.Areas.Authentications.Controllers;
 using Shah_Traveling_Agency_API.Areas.Authentications.Dapper_Context;
 using Shah_Traveling_Agency_API.Areas.DropDown.Repositories;
 using Shah_Traveling_Agency_API.Areas.PublicArea.Repositories;
@@ -10,7 +11,7 @@ namespace Shah_Traveling_Agency_API.Areas.DropDown.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
-    public class DropDownController : ControllerBase
+    public class DropDownController : BaseController
     {
         private readonly JwtService _jwtService;
         private readonly PasswordService _passwordService;
@@ -160,6 +161,117 @@ namespace Shah_Traveling_Agency_API.Areas.DropDown.Controllers
 
         #endregion
 
+        #region Brnaches
 
+        [HttpGet("GetBranches")]
+        public async Task<IActionResult> GetBranches()
+        {
+            try
+            {
+
+                var result = await _dropDownRepo.GetBranchesAsync(UserId);
+
+                if (result.StatusCode == 0)
+                {
+                    return StatusCode(500, new
+                    {
+                        status = false,
+                        statusCode = 500,
+                        message = result.Message,
+                        data = result.Data,
+                        success = false
+                    });
+                }
+
+                if (!result.Data.Any())
+                {
+                    return NotFound(new
+                    {
+                        status = false,
+                        statusCode = 404,
+                        message = result.Message,
+                        data = result.Data,
+                        success = false
+                    });
+                }
+
+                return Ok(new
+                {
+                    status = true,
+                    statusCode = 200,
+                    message = result.Message,
+                    data = result.Data,
+                    success = true
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    status = false,
+                    statusCode = 500,
+                    message = ex.Message,
+                    data = new List<object>(),
+                    success = false
+                });
+            }
+        }
+        #endregion
+
+        #region User Types
+        [HttpGet("GetUserTypes")]
+        public async Task<IActionResult> GetUserTypes()
+        {
+            try
+            {
+                var result = await _dropDownRepo.GetUserTypesAsync(UserId);
+
+                if (result.StatusCode == 0)
+                {
+                    return StatusCode(500, new
+                    {
+                        status = false,
+                        statusCode = 500,
+                        message = result.Message,
+                        data = result.Data,
+                        success = false
+                    });
+                }
+
+                if (!result.Data.Any())
+                {
+                    return NotFound(new
+                    {
+                        status = false,
+                        statusCode = 404,
+                        message = result.Message,
+                        data = result.Data,
+                        success = false
+                    });
+                }
+
+                return Ok(new
+                {
+                    status = true,
+                    statusCode = 200,
+                    message = result.Message,
+                    data = result.Data,
+                    success = true
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    status = false,
+                    statusCode = 500,
+                    message = ex.Message,
+                    data = new List<object>(),
+                    success = false
+                });
+            }
+
+        }
+        #endregion
     }
 }

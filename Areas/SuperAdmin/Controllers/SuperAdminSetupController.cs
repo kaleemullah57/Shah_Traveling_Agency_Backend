@@ -1,9 +1,12 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Dapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 using Shah_Traveling_Agency_API.Areas.Authentications.Controllers;
 using Shah_Traveling_Agency_API.Areas.Authentications.Dapper_Context;
 using Shah_Traveling_Agency_API.Areas.SuperAdmin.Models;
 using Shah_Traveling_Agency_API.Areas.SuperAdmin.Repositories;
+using System.Data;
 
 namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Controllers
 {
@@ -1794,7 +1797,7 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Controllers
         {
             try
             {
-                
+
 
                 if (airportId <= 0)
                 {
@@ -1808,7 +1811,7 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Controllers
                     });
                 }
 
-                var result = await _superAdminSetupRepo.DeleteAirportAsync(airportId,UserId);
+                var result = await _superAdminSetupRepo.DeleteAirportAsync(airportId, UserId);
 
                 switch (result.StatusCode)
                 {
@@ -2217,6 +2220,83 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Controllers
                     data = (object?)null,
                     success = false
                 });
+            }
+        }
+        #endregion
+
+        #region Get All Users
+
+        [HttpPost("GetUsersList")]
+        public async Task<IActionResult> GetUsers(GetAllUsersVM vm)
+        {
+            try
+            {
+
+                var result = await _superAdminSetupRepo.GetUsersAsync(vm, UserId);
+                if (result.StatusCode == 1)
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, new
+                    {
+                        status = false,
+                        statusCode = 403,
+                        message = result.Message,
+                        data = new List<object>(),
+                        totalCount = 0,
+                        success = false
+                    });
+                }
+
+                if (result.StatusCode == 0)
+                {
+                    return StatusCode(
+                        StatusCodes.Status500InternalServerError,
+                        new
+                        {
+                            status = false,
+                            statusCode = 500,
+                            message = result.Message,
+                            data = new List<object>(),
+                            totalCount = 0,
+                            success = false
+                        });
+                }
+
+                if (result.StatusCode == 3)
+                {
+                    return NotFound(new
+                    {
+                        status = false,
+                        statusCode = 404,
+                        message = result.Message,
+                        data = new List<object>(),
+                        totalCount = result.TotalCount,
+                        success = false
+                    });
+                }
+
+                return Ok(new
+                {
+                    status = true,
+                    statusCode = 200,
+                    message = result.Message,
+                    data = result.Data,
+                    totalCount = result.TotalCount,
+                    success = true
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    new
+                    {
+                        status = false,
+                        statusCode = 500,
+                        message = ex.Message,
+                        data = new List<object>(),
+                        totalCount = 0,
+                        success = false
+                    });
             }
         }
         #endregion
