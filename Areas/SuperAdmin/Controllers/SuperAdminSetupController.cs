@@ -1783,6 +1783,92 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Controllers
                 });
             }
         }
+
+
+
+
+
+        // Delete Airports
+        [HttpDelete("DeleteAirport/{airportId:int}")]
+        public async Task<IActionResult> DeleteAirport(int airportId)
+        {
+            try
+            {
+                
+
+                if (airportId <= 0)
+                {
+                    return BadRequest(new
+                    {
+                        status = false,
+                        statusCode = 400,
+                        message = "Invalid AirportId.",
+                        data = (object?)null,
+                        success = false
+                    });
+                }
+
+                var result = await _superAdminSetupRepo.DeleteAirportAsync(airportId,UserId);
+
+                switch (result.StatusCode)
+                {
+                    case 3:
+
+                        return Ok(new
+                        {
+                            status = true,
+                            statusCode = 200,
+                            message = result.Message,
+                            data = (object?)null,
+                            success = true
+                        });
+
+                    case 1:
+
+                        return StatusCode(403, new
+                        {
+                            status = false,
+                            statusCode = 403,
+                            message = result.Message,
+                            data = (object?)null,
+                            success = false
+                        });
+
+                    case 4:
+
+                        return NotFound(new
+                        {
+                            status = false,
+                            statusCode = 404,
+                            message = result.Message,
+                            data = (object?)null,
+                            success = false
+                        });
+
+                    default:
+
+                        return StatusCode(500, new
+                        {
+                            status = false,
+                            statusCode = 500,
+                            message = result.Message,
+                            data = (object?)null,
+                            success = false
+                        });
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    status = false,
+                    statusCode = 500,
+                    message = ex.Message,
+                    data = (object?)null,
+                    success = false
+                });
+            }
+        }
         #endregion
 
         #region Services

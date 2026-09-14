@@ -896,6 +896,38 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Repositories
                 message
             );
         }
+
+
+
+
+        // Delete Airports
+        public async Task<(int StatusCode, string Message)> DeleteAirportAsync(int airportId, int userId)
+        {
+            using var connection = _dapperContext.CreateConnection();
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@AirportId", airportId);
+            parameters.Add("@UserID", userId);
+
+            parameters.Add("@Message", dbType: DbType.String, size: -1, direction: ParameterDirection.Output);
+
+            parameters.Add("@ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
+
+            await connection.ExecuteAsync(
+                "Data.SP_Delete_Airports",
+                parameters,
+                commandType: CommandType.StoredProcedure);
+
+            var statusCode = parameters.Get<int>("@ReturnValue");
+
+            var message = parameters.Get<string>("@Message") ?? string.Empty;
+
+            return (
+                statusCode,
+                message
+            );
+        }
         #endregion
 
         #region Services
