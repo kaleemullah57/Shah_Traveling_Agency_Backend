@@ -1605,6 +1605,101 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Controllers
                 });
             }
         }
+
+
+
+
+
+        // Get Airports
+        [HttpPost("GetAirports")]
+        public async Task<IActionResult> GetAirports([FromBody] AirportListRequest request)
+        {
+            try
+            {
+
+                var result = await _superAdminSetupRepo.GetAirportsAsync(request, UserId);
+
+
+                if (result.StatusCode == 3)
+                {
+                    return Ok(new
+                    {
+                        status = true,
+                        statusCode = 200,
+                        message = result.Message,
+
+                        data = new
+                        {
+                            data = result.Data,
+                            totalCount = result.TotalCount,
+                            filterCount = result.TotalCount
+                        },
+
+                        success = true
+                    });
+                }
+
+
+                if (result.StatusCode == 1)
+                {
+                    return StatusCode(
+                        StatusCodes.Status403Forbidden,
+                        new
+                        {
+                            status = false,
+                            statusCode = 403,
+                            message = result.Message,
+                            data = (object?)null,
+                            success = false
+                        });
+                }
+
+
+                if (result.StatusCode == 4)
+                {
+                    return Ok(new
+                    {
+                        status = true,
+                        statusCode = 200,
+                        message = result.Message,
+
+                        data = new
+                        {
+                            data = new List<AirportModel>(),
+                            totalCount = 0,
+                            filterCount = 0
+                        },
+
+                        success = true
+                    });
+                }
+
+
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    new
+                    {
+                        status = false,
+                        statusCode = 500,
+                        message = result.Message,
+                        data = (object?)null,
+                        success = false
+                    });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    new
+                    {
+                        status = false,
+                        statusCode = 500,
+                        message = ex.Message,
+                        data = (object?)null,
+                        success = false
+                    });
+            }
+        }
         #endregion
 
         #region Services

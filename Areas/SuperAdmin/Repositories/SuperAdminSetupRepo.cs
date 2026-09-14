@@ -810,6 +810,51 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Repositories
 
             return (statusCode, message);
         }
+
+
+
+
+
+        // Get Airports
+        public async Task<(List<AirportModel> Data, int TotalCount, int StatusCode, string Message)> GetAirportsAsync(AirportListRequest request, int userId)
+        {
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@Search", string.IsNullOrWhiteSpace(request.Search) ? null : request.Search);
+
+            parameters.Add("@PageNumber", request.PageNumber);
+            parameters.Add("@PageSize", request.PageSize);
+            parameters.Add("@UserID", userId);
+
+            parameters.Add("@TotalCount", dbType: DbType.Int32, direction: ParameterDirection.Output);
+
+            parameters.Add("@Message", dbType: DbType.String, size: -1, direction: ParameterDirection.Output);
+
+            parameters.Add("@ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
+
+            using var connection = _dapperContext.CreateConnection();
+            var data = (
+                await connection.QueryAsync<AirportModel>(
+                    "Data.SP_Get_Airports",
+                    parameters,
+                    commandType: CommandType.StoredProcedure
+                )
+            ).ToList();
+
+            int totalCount = parameters.Get<int>("@TotalCount");
+
+            string message = parameters.Get<string>("@Message") ?? "Unknown response";
+
+            int statusCode = parameters.Get<int>("@ReturnValue");
+
+            return (
+                data,
+                totalCount,
+                statusCode,
+                message
+            );
+        }
         #endregion
 
         #region Services
