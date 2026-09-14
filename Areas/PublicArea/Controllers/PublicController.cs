@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Shah_Traveling_Agency_API.Areas.Authentications.Controllers;
 using Shah_Traveling_Agency_API.Areas.Authentications.Dapper_Context;
 using Shah_Traveling_Agency_API.Areas.BranchAdmin.Repositories;
+using Shah_Traveling_Agency_API.Areas.PublicArea.Models;
 using Shah_Traveling_Agency_API.Areas.PublicArea.Repositories;
 
 namespace Shah_Traveling_Agency_API.Areas.PublicArea.Controllers
@@ -72,6 +73,63 @@ namespace Shah_Traveling_Agency_API.Areas.PublicArea.Controllers
                     status = false,
                     message = ex.Message,
                     data = new List<object>()
+                });
+            }
+        }
+        #endregion
+
+        #region Branch Services
+
+        [HttpPost("GetBranchServicesForPublic")]
+        public async Task<IActionResult> GetBranchServicesForPublic([FromBody] GetBranchServicesRequest request)
+        {
+            try
+            {
+                var result = await _publicRepo.GetBranchServicesForPublicAsync(request);
+
+                if (result.StatusCode == 1)
+                {
+                    return NotFound(new
+                    {
+                        status = false,
+                        statusCode = 404,
+                        message = result.Message,
+                        data = result.Data,
+                        success = false
+                    });
+                }
+
+                if (result.StatusCode == -1)
+                {
+                    return StatusCode(500, new
+                    {
+                        status = false,
+                        statusCode = 500,
+                        message = result.Message,
+                        data = (object?)null,
+                        success = false
+                    });
+                }
+
+                return Ok(new
+                {
+                    status = true,
+                    statusCode = 200,
+                    message = result.Message,
+                    data = result.Data,
+                    totalCount = result.TotalCount,
+                    success = true
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    status = false,
+                    statusCode = 500,
+                    message = ex.Message,
+                    data = (object?)null,
+                    success = false
                 });
             }
         }

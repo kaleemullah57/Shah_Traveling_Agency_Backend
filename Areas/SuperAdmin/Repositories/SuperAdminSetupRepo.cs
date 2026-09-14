@@ -1,4 +1,5 @@
 ﻿using Dapper;
+using Microsoft.Data.SqlClient;
 using Shah_Traveling_Agency_API.Areas.Authentications.Dapper_Context;
 using Shah_Traveling_Agency_API.Areas.SuperAdmin.Models;
 using System.Data;
@@ -774,6 +775,41 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Repositories
         }
 
 
+        #endregion
+
+        #region Airports
+
+        public async Task<(int StatusCode, string Message)> AddAirportAsync(AddAirportRequest request, int userId)
+        {
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@AirportName", request.AirportName);
+            parameters.Add("@IataCode", request.IataCode);
+            parameters.Add("@IcaoCode", request.IcaoCode);
+            parameters.Add("@CountryId", request.CountryId);
+            parameters.Add("@ProvinceId", request.ProvinceId);
+            parameters.Add("@CityId", request.CityId);
+            parameters.Add("@isInternational", request.IsInternational);
+            parameters.Add("@IsActive", request.IsActive);
+            parameters.Add("@UserID", userId);
+
+            parameters.Add("@Message", dbType: DbType.String, size: -1, direction: ParameterDirection.Output);
+
+            parameters.Add("@ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
+
+            using var connection = _dapperContext.CreateConnection();
+            await connection.ExecuteAsync(
+                "Data.SP_Add_Airports",
+                parameters,
+                commandType: CommandType.StoredProcedure);
+
+            int statusCode = parameters.Get<int>("@ReturnValue");
+
+            string message = parameters.Get<string>("@Message") ?? "Unknown response";
+
+            return (statusCode, message);
+        }
         #endregion
 
         #region Services

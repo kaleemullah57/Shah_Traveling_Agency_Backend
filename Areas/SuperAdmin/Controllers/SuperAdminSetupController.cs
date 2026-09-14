@@ -1535,6 +1535,78 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Controllers
 
         #endregion
 
+        #region Airports
+
+        // Add Airports
+        [HttpPost("AddAirport")]
+        public async Task<IActionResult> AddAirport([FromBody] AddAirportRequest request)
+        {
+            try
+            {
+                var result = await _superAdminSetupRepo.AddAirportAsync(request, UserId);
+
+                return result.StatusCode switch
+                {
+                    3 => Ok(new
+                    {
+                        status = true,
+                        statusCode = 200,
+                        message = result.Message,
+                        data = (object?)null,
+                        success = true
+                    }),
+
+                    1 => StatusCode(403, new
+                    {
+                        status = false,
+                        statusCode = 403,
+                        message = result.Message,
+                        data = (object?)null,
+                        success = false
+                    }),
+
+                    2 => Conflict(new
+                    {
+                        status = false,
+                        statusCode = 409,
+                        message = result.Message,
+                        data = (object?)null,
+                        success = false
+                    }),
+
+                    4 => BadRequest(new
+                    {
+                        status = false,
+                        statusCode = 400,
+                        message = result.Message,
+                        data = (object?)null,
+                        success = false
+                    }),
+
+                    _ => StatusCode(500, new
+                    {
+                        status = false,
+                        statusCode = 500,
+                        message = result.Message,
+                        data = (object?)null,
+                        success = false
+                    })
+                };
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    status = false,
+                    statusCode = 500,
+                    message = ex.Message,
+                    data = (object?)null,
+                    success = false
+                });
+            }
+        }
+        #endregion
+
         #region Services
 
         // Add Services
