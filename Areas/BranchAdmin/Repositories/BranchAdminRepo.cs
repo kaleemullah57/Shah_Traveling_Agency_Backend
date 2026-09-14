@@ -292,6 +292,49 @@ namespace Shah_Traveling_Agency_API.Areas.BranchAdmin.Repositories
 
             return (statusCode, message);
         }
+
+
+
+
+
+
+        // Update Branch Services
+        public async Task<(int StatusCode, string Message)> UpdateBranchService(UpdateBranchServiceRequest request, int userId, int branchId)
+        {
+            using var connection = _dapperContext.CreateConnection();
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@BranchServiceId", request.BranchServiceId, DbType.Int32);
+
+            parameters.Add("@ServiceId", request.ServiceId, DbType.Int32);
+
+            parameters.Add("@IsActive", request.IsActive, DbType.Boolean);
+
+            parameters.Add("@UserID", userId, DbType.Int32);
+
+            parameters.Add("@BranchId", branchId, DbType.Int32);
+
+            parameters.Add("@BranchServiceName", request.BranchServiceName, DbType.String);
+
+            parameters.Add("@Message", dbType: DbType.String, size: -1, direction: ParameterDirection.Output);
+
+            parameters.Add("ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
+
+            await connection.ExecuteAsync(
+                "Travel.Sp_Update_BranchServices",
+                parameters,
+                commandType: CommandType.StoredProcedure);
+
+            var returnCode = parameters.Get<int>("ReturnValue");
+
+            var message = parameters.Get<string>("@Message");
+
+            return (
+                returnCode,
+                message ?? string.Empty
+            );
+        }
         #endregion
     }
 }

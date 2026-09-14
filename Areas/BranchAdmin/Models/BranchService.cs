@@ -40,4 +40,18 @@
         public string UserName { get; set; } = string.Empty;
     }
 
+
+
+
+
+
+
+    // Update Branch Services
+    public class UpdateBranchServiceRequest
+    {
+        public int BranchServiceId { get; set; }
+        public int ServiceId { get; set; }
+        public bool IsActive { get; set; } = true;
+        public string BranchServiceName { get; set; } = string.Empty;
+    }
 }

@@ -521,6 +521,121 @@ namespace Shah_Traveling_Agency_API.Areas.BranchAdmin.Controllers
                     });
             }
         }
+
+
+
+
+
+
+
+        // Update Branch Services
+        [HttpPut("UpdateBranchService")]
+        public async Task<IActionResult> UpdateBranchService([FromBody] UpdateBranchServiceRequest request)
+        {
+            try
+            {
+                if (UserId <= 0)
+                {
+                    return Unauthorized(new
+                    {
+                        status = false,
+                        statusCode = 401,
+                        message = "Invalid User",
+                        data = (object?)null,
+                        success = false
+                    });
+                }
+
+                if (BranchId <= 0)
+                {
+                    return BadRequest(new
+                    {
+                        status = false,
+                        statusCode = 400,
+                        message = "Invalid Branch",
+                        data = (object?)null,
+                        success = false
+                    });
+                }
+
+                var result = await _branchAdminRepo.UpdateBranchService(request, UserId, BranchId);
+
+                switch (result.StatusCode)
+                {
+                    case 4:
+                        return Ok(new
+                        {
+                            status = true,
+                            statusCode = 200,
+                            message = result.Message,
+                            data = (object?)null,
+                            success = true
+                        });
+
+                    case 1:
+                        return StatusCode(403, new
+                        {
+                            status = false,
+                            statusCode = 403,
+                            message = result.Message,
+                            data = (object?)null,
+                            success = false
+                        });
+
+                    case 2:
+                        return NotFound(new
+                        {
+                            status = false,
+                            statusCode = 404,
+                            message = result.Message,
+                            data = (object?)null,
+                            success = false
+                        });
+
+                    case 3:
+                        return Conflict(new
+                        {
+                            status = false,
+                            statusCode = 409,
+                            message = result.Message,
+                            data = (object?)null,
+                            success = false
+                        });
+
+                    case 5:
+                        return BadRequest(new
+                        {
+                            status = false,
+                            statusCode = 400,
+                            message = result.Message,
+                            data = (object?)null,
+                            success = false
+                        });
+
+                    default:
+                        return StatusCode(500, new
+                        {
+                            status = false,
+                            statusCode = 500,
+                            message = result.Message,
+                            data = (object?)null,
+                            success = false
+                        });
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    status = false,
+                    statusCode = 500,
+                    message = ex.Message,
+                    data = (object?)null,
+                    success = false
+                });
+            }
+        }
+
         #endregion
 
 
