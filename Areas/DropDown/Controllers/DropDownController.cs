@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Dapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Shah_Traveling_Agency_API.Areas.Authentications.Controllers;
 using Shah_Traveling_Agency_API.Areas.Authentications.Dapper_Context;
 using Shah_Traveling_Agency_API.Areas.DropDown.Repositories;
 using Shah_Traveling_Agency_API.Areas.PublicArea.Repositories;
+using System.Data;
 
 namespace Shah_Traveling_Agency_API.Areas.DropDown.Controllers
 {
@@ -349,6 +351,149 @@ namespace Shah_Traveling_Agency_API.Areas.DropDown.Controllers
                 });
             }
 
+        }
+        #endregion
+
+        #region Airlines
+
+        [HttpGet("airlinesDropDown")]
+        public async Task<IActionResult> GetAirlines()
+        {
+            try
+            {
+                var (statusCode, message, data) = await _dropDownRepo.GetAirlinesAsync();
+
+                if (statusCode == 1)
+                {
+                    return Ok(new
+                    {
+                        status = true,
+                        statusCode = 200,
+                        message,
+                        data,
+                        success = true
+                    });
+                }
+
+                if (statusCode == 2)
+                {
+                    return Ok(new
+                    {
+                        status = false,
+                        statusCode = 404,
+                        message,
+                        data = Array.Empty<object>(),
+                        success = false
+                    });
+                }
+
+                return StatusCode(500, new
+                {
+                    status = false,
+                    statusCode = 500,
+                    message,
+                    data = (object?)null,
+                    success = false
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    status = false,
+                    statusCode = 500,
+                    message = ex.Message,
+                    data = (object?)null,
+                    success = false
+                });
+            }
+        }
+        #endregion
+
+        #region Airports
+
+        [HttpGet("GetAirPortsDropDown")]
+        public async Task<IActionResult> GetAirPortsDropDown()
+        {
+            try
+            {
+                var result = await _dropDownRepo.GetAirPortsAsync();
+
+                return Ok(new
+                {
+                    status = result.Status,
+                    statusCode = result.StatusCode,
+                    message = result.Message,
+                    data = result.Data,
+                    success = result.Status
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    status = false,
+                    statusCode = 500,
+                    message = ex.Message,
+                    data = new List<object>(),
+                    success = false
+                });
+            }
+        }
+        #endregion
+
+        #region Payment Methods
+        [HttpGet("GetPaymentMethodsDropDown")]
+        public async Task<IActionResult> GetPaymentMethods()
+        {
+            try
+            {
+                var result = await _dropDownRepo.GetPaymentMethods();
+
+                if (result.ReturnValue == 1)
+                {
+                    return Ok(new
+                    {
+                        status = true,
+                        statusCode = 200,
+                        message = result.Message,
+                        data = result.Data,
+                        success = true
+                    });
+                }
+
+                if (result.ReturnValue == 2)
+                {
+                    return Ok(new
+                    {
+                        status = false,
+                        statusCode = 404,
+                        message = result.Message,
+                        data = Array.Empty<object>(),
+                        success = false
+                    });
+                }
+
+                return StatusCode(500, new
+                {
+                    status = false,
+                    statusCode = 500,
+                    message = result.Message,
+                    data = Array.Empty<object>(),
+                    success = false
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    status = false,
+                    statusCode = 500,
+                    message = ex.Message,
+                    data = Array.Empty<object>(),
+                    success = false
+                });
+            }
         }
         #endregion
     }

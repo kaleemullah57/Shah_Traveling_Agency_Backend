@@ -200,6 +200,121 @@ namespace Shah_Traveling_Agency_API.Areas.DropDown.Repositories
             }
         }
         #endregion
+
+        #region Airlines
+
+        public async Task<(int StatusCode, string Message, IEnumerable<dynamic>? Data)> GetAirlinesAsync()
+        {
+            try
+            {
+                using var connection = _dapperContext.CreateConnection();
+
+                var parameters = new DynamicParameters();
+
+                parameters.Add("@Message", dbType: DbType.String, size: -1, direction: ParameterDirection.Output);
+
+                parameters.Add("@ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
+
+                var data = await connection.QueryAsync(
+                    "DropDown.Sp_Get_Airlines",
+                    parameters,
+                    commandType: CommandType.StoredProcedure);
+
+                var returnValue = parameters.Get<int>("@ReturnValue");
+                var message = parameters.Get<string>("@Message") ?? string.Empty;
+
+                return (
+                    returnValue,
+                    message,
+                    data
+                );
+            }
+            catch (Exception ex)
+            {
+                return (
+                    0,
+                    ex.Message,
+                    null
+                );
+            }
+        }
+        #endregion
+
+        #region Airports
+        public async Task<(bool Status, int StatusCode, string Message, object Data)> GetAirPortsAsync()
+        {
+            try
+            {
+                using var connection = _dapperContext.CreateConnection();
+
+                var parameters = new DynamicParameters();
+
+                parameters.Add("@Message", dbType: DbType.String, direction: ParameterDirection.Output, size: 4000);
+
+                var data = (await connection.QueryAsync<object>(
+                    "DropDown.Sp_Get_Airports",
+                    parameters,
+                    commandType: CommandType.StoredProcedure
+                )).ToList();
+
+                var message = parameters.Get<string>("@Message");
+
+                if (data.Count == 0)
+                {
+                    return (
+                        false,
+                        StatusCodes.Status404NotFound,
+                        message ?? "No airlines found.",
+                        data
+                    );
+                }
+
+                return (
+                    true,
+                    StatusCodes.Status200OK,
+                    message ?? "Airlines fetched successfully.",
+                    data
+                );
+            }
+            catch (Exception ex)
+            {
+                return (
+                    false,
+                    StatusCodes.Status500InternalServerError,
+                    ex.Message,
+                    new List<object>()
+                );
+            }
+        }
+        #endregion
+
+        #region Payment Methods
+
+        public async Task<(int ReturnValue, string Message, IEnumerable<dynamic> Data)> GetPaymentMethods()
+        {
+            try
+            {
+                var parameters = new DynamicParameters();
+
+                parameters.Add("@Message", dbType: DbType.String, size: -1, direction: ParameterDirection.Output);
+
+                using var connection = _dapperContext.CreateConnection();
+                var result = await connection.QueryAsync(
+                    "DropDown.Sp_Get_PaymentMethod",
+                    parameters,
+                    commandType: CommandType.StoredProcedure
+                );
+
+                var message = parameters.Get<string>("@Message") ?? string.Empty;
+
+                return (1, message, result);
+            }
+            catch (Exception ex)
+            {
+                return (0, ex.Message, Enumerable.Empty<dynamic>());
+            }
+        }
+        #endregion
     }
 }
 
