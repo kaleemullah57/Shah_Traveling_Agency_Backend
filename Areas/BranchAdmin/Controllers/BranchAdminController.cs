@@ -703,5 +703,64 @@ namespace Shah_Traveling_Agency_API.Areas.BranchAdmin.Controllers
             }
         }
         #endregion
+
+        #region Ticket Inventory
+
+        [HttpPost("AddTicketPurchase")]
+        public async Task<IActionResult> AddTicketPurchase( [FromBody] AddTicketPurchaseRequest request)
+        {
+            try
+            {
+                if (request == null)
+                {
+                    return BadRequest(new
+                    {
+                        status = false,
+                        statusCode = 400,
+                        message = "Request is required.",
+                        data = (object?)null,
+                        success = false
+                    });
+                }
+
+
+
+                var result = await _branchAdminRepo.AddTicketPurchaseAsync(request, BranchId, UserId);
+
+
+                if (!result.IsSuccess)
+                {
+                    return BadRequest(new
+                    {
+                        status = false,
+                        statusCode = 400,
+                        message = result.Message,
+                        data = (object?)null,
+                        success = false
+                    });
+                }
+
+                return Ok(new
+                {
+                    status = true,
+                    statusCode = 200,
+                    message = result.Message,
+                    data = result.Data,
+                    success = true
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    status = false,
+                    statusCode = 500,
+                    message = ex.Message,
+                    data = (object?)null,
+                    success = false
+                });
+            }
+        }
+        #endregion
     }
 }

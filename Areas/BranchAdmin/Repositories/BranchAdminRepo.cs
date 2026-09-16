@@ -385,5 +385,101 @@ namespace Shah_Traveling_Agency_API.Areas.BranchAdmin.Repositories
             );
         }
         #endregion
+
+        char Admin#region Ticket Inventory 
+
+
+        // Add Ticket To Inventory
+        public async Task<(bool IsSuccess, string Message, int ReturnCode, AddTicketPurchaseResponse? Data)> AddTicketPurchaseAsync(AddTicketPurchaseRequest request, int branchId, int createdById)
+        {
+            try
+            {
+                using var connection = _dapperContext.CreateConnection();
+
+                var parameters = new DynamicParameters();
+
+                parameters.Add("@BranchId", branchId, DbType.Int32);
+                parameters.Add("@CreatedById", createdById, DbType.Int32);
+
+                parameters.Add("@PurchasedFrom", request.PurchasedFrom);
+                parameters.Add("@PurchaseReference", request.PurchaseReference);
+                parameters.Add("@InvoiceDate", request.InvoiceDate);
+
+                parameters.Add("@AirlineId", request.AirlineId);
+                parameters.Add("@FromAirportId", request.FromAirportId);
+                parameters.Add("@ToAirportId", request.ToAirportId);
+
+                parameters.Add("@DepartureDateTime", request.DepartureDateTime);
+
+                parameters.Add("@ArrivalDateTime", request.ArrivalDateTime);
+
+                parameters.Add("@Quantity", request.Quantity);
+                parameters.Add("@PurchasePrice", request.PurchasePrice);
+                parameters.Add("@SellingPrice", request.SellingPrice);
+
+                parameters.Add("@CheckedBaggageKg", request.CheckedBaggageKg);
+                parameters.Add("@HandBaggageKg", request.HandBaggageKg);
+
+                parameters.Add("@PersonalItemKg", request.PersonalItemKg);
+
+                parameters.Add("@ValidFrom", request.ValidFrom);
+                parameters.Add("@ValidUntil", request.ValidUntil);
+
+                parameters.Add("@PaidAmount", request.PaidAmount);
+                parameters.Add("@PaymentMethodId", request.PaymentMethodId);
+                parameters.Add("@PaymentReference", request.PaymentReference);
+
+                parameters.Add("@Remarks", request.Remarks);
+
+                parameters.Add("@Message", dbType: DbType.String, size: -1, direction: ParameterDirection.Output);
+
+                parameters.Add("@ReturnCode", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
+
+                var data = await connection.QueryFirstOrDefaultAsync<AddTicketPurchaseResponse>(
+                    "Inventory.SP_Add_TicketPurchase",
+                    parameters,
+                    commandType: CommandType.StoredProcedure);
+
+                var message = parameters.Get<string>("@Message") ?? string.Empty;
+
+                var returnCode = parameters.Get<int>("@ReturnCode");
+
+                if (returnCode != 0)
+                {
+                    return (
+                        false,
+                        message,
+                        returnCode,
+                        null
+                    );
+                }
+
+                return (
+                    true,
+                    message,
+                    returnCode,
+                    data
+                );
+            }
+            catch (SqlException ex)
+            {
+                return (
+                    false,
+                    ex.Message,
+                    ex.Number,
+                    null
+                );
+            }
+            catch (Exception ex)
+            {
+                return (
+                    false,
+                    ex.Message,
+                    -1,
+                    null
+                );
+            }
+        }
+        #endregion
     }
 }
