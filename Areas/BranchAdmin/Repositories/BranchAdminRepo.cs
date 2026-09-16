@@ -336,5 +336,54 @@ namespace Shah_Traveling_Agency_API.Areas.BranchAdmin.Repositories
             );
         }
         #endregion
+
+        #region Purchase Invoice
+
+        public async Task<(int StatusCode, string Message, int TotalCount, IEnumerable<PurchasedInvoiceModel> Data)> GetPurchasedInvoicesAsync(PurchasedInvoiceSearchRequest request, int userId, int branchId)
+        {
+            using var connection = _dapperContext.CreateConnection();
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@Search", string.IsNullOrWhiteSpace(request.Search) ? null : request.Search);
+
+            parameters.Add("@PageNumber", request.PageNumber <= 0 ? 1 : request.PageNumber);
+
+            parameters.Add("@PageSize", request.PageSize <= 0 ? 20 : request.PageSize);
+
+            parameters.Add("@FromDate", request.FromDate);
+            parameters.Add("@ToDate", request.ToDate);
+
+            parameters.Add("@UserID", userId);
+            parameters.Add("@BranchId", branchId);
+
+            parameters.Add("@TotalCount", dbType: DbType.Int32, direction: ParameterDirection.Output);
+
+            parameters.Add("@Message", dbType: DbType.String, size: -1, direction: ParameterDirection.Output);
+
+            parameters.Add("@ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
+
+
+            var data = (await connection.QueryAsync<PurchasedInvoiceModel>(
+                "Inventory.Sp_Get_Purchased_Invoice",
+                parameters,
+                commandType: CommandType.StoredProcedure)).ToList();
+
+
+            var totalCount = parameters.Get<int?>("@TotalCount") ?? 0;
+
+            var message = parameters.Get<string>("@Message") ?? "";
+
+            var statusCode = parameters.Get<int>("@ReturnValue");
+
+
+            return (
+                statusCode,
+                message,
+                totalCount,
+                data
+            );
+        }
+        #endregion
     }
 }

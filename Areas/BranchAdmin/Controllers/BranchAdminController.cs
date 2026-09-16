@@ -638,6 +638,70 @@ namespace Shah_Traveling_Agency_API.Areas.BranchAdmin.Controllers
 
         #endregion
 
+        #region Purchase Invoice
 
+
+        [HttpPost("GetPurchasedInvoices")]
+        public async Task<IActionResult> GetPurchasedInvoices([FromBody] PurchasedInvoiceSearchRequest request)
+        {
+            try
+            {
+
+
+                var result = await _branchAdminRepo.GetPurchasedInvoicesAsync(request, UserId, BranchId);
+
+
+                if (result.StatusCode == 2)
+                {
+                    return Ok(new
+                    {
+                        status = false,
+                        statusCode = 404,
+                        message = result.Message,
+                        data = result.Data,
+                        totalCount = result.TotalCount,
+                        success = false
+                    });
+                }
+
+
+                if (result.StatusCode == 0)
+                {
+                    return StatusCode(500, new
+                    {
+                        status = false,
+                        statusCode = 500,
+                        message = result.Message,
+                        data = result.Data,
+                        totalCount = result.TotalCount,
+                        success = false
+                    });
+                }
+
+
+                return Ok(new
+                {
+                    status = true,
+                    statusCode = 200,
+                    message = result.Message,
+                    data = result.Data,
+                    totalCount = result.TotalCount,
+                    success = true
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    status = false,
+                    statusCode = 500,
+                    message = ex.Message,
+                    data = (object?)null,
+                    totalCount = 0,
+                    success = false
+                });
+            }
+        }
+        #endregion
     }
 }
