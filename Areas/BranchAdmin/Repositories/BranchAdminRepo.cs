@@ -386,7 +386,7 @@ namespace Shah_Traveling_Agency_API.Areas.BranchAdmin.Repositories
         }
         #endregion
 
-        char Admin#region Ticket Inventory 
+        #region Ticket Inventory 
 
 
         // Add Ticket To Inventory
