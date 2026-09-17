@@ -16,6 +16,24 @@
         public DateTime? FromDate { get; set; }
         public DateTime? ToDate { get; set; }
     }
+    public class PurchaseInvoicePaymentHistoryModel
+    {
+        public decimal PaymentAmount { get; set; }
+
+        public DateTime? PaymentDate { get; set; }
+
+        public int PaymentMethodId { get; set; }
+
+        public string? MethodName { get; set; }
+
+        public string? PaymentReference { get; set; }
+
+        public string? PaymentRemarks { get; set; }
+
+        public decimal PaidAmount { get; set; }
+
+        public decimal RemainingAmount { get; set; }
+    }
     public class PurchasedInvoiceModel
     {
         public int PurchaseInvoiceId { get; set; }
@@ -33,6 +51,7 @@
         public decimal Discount { get; set; }
         public decimal Tax { get; set; }
         public decimal GrandTotal { get; set; }
+
         public decimal PaidAmount { get; set; }
         public decimal RemainingAmount { get; set; }
 
@@ -74,18 +93,46 @@
         public DateTime ValidUntil { get; set; }
 
 
-        // Payment Details
+        // Payment History
+        public string? PaymentHistoryJson { get; set; }
 
-        public decimal? Payable_Amount { get; set; }
+        public List<PurchaseInvoicePaymentHistoryModel> PaymentHistory { get; set; }
+            = new();
+    }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // Update Payment Invoice
+    public class UpdatePurchasedInvoicePaymentRequest
+    {
+        public int PurchaseInvoiceId { get; set; }
+        public decimal PaymentAmount { get; set; }
         public DateTime? PaymentDate { get; set; }
-
-        public int? PaymentMethodId { get; set; }
-
-        public string? MethodName { get; set; }
-
+        public int PaymentMethodId { get; set; }
         public string? PaymentReference { get; set; }
+        public string? Remarks { get; set; }
+    }
 
-        public string? PaymentRemarks { get; set; }
+    public class PurchasedInvoicePaymentResponse
+    {
+        public int PurchaseInvoiceId { get; set; }
+        public decimal TotalAmount { get; set; }
+        public decimal PaidAmount { get; set; }
+        public decimal RemainingAmount { get; set; }
+        public string? PaymentStatus { get; set; }
     }
 }

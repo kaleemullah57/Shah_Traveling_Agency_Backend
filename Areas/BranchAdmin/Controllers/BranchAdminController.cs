@@ -702,12 +702,58 @@ namespace Shah_Traveling_Agency_API.Areas.BranchAdmin.Controllers
                 });
             }
         }
+
+
+
+
+
+
+
+
+
+
+        // Update Payment Invoice
+        [HttpPost("UpdatePurchasedInvoicePayment")]
+        public async Task<IActionResult> UpdatePurchasedInvoicePayment(UpdatePurchasedInvoicePaymentRequest request)
+        {
+            try
+            {
+
+                var result = await _branchAdminRepo.UpdatePaymentInvoice(request, UserId, BranchId);
+
+                return StatusCode(result.StatusCode, new
+                {
+                    status = result.Status,
+                    statusCode = result.StatusCode,
+                    message = result.Message,
+                    data = result.Data,
+                    success = result.Status
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    status = false,
+                    statusCode = 500,
+                    message = ex.Message,
+                    data = (object?)null,
+                    success = false
+                });
+            }
+        }
+
+
+
+
+
+
         #endregion
 
         #region Ticket Inventory
 
         [HttpPost("AddTicketPurchase")]
-        public async Task<IActionResult> AddTicketPurchase( [FromBody] AddTicketPurchaseRequest request)
+        public async Task<IActionResult> AddTicketPurchase([FromBody] AddTicketPurchaseRequest request)
         {
             try
             {

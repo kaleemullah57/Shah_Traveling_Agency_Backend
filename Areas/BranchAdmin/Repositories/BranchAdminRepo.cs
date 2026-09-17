@@ -1,4 +1,5 @@
-﻿using Dapper;
+﻿using System.Text.Json;
+using Dapper;
 using Microsoft.Data.SqlClient;
 using Shah_Traveling_Agency_API.Areas.Authentications.Dapper_Context;
 using Shah_Traveling_Agency_API.Areas.BranchAdmin.Models;
@@ -339,17 +340,17 @@ namespace Shah_Traveling_Agency_API.Areas.BranchAdmin.Repositories
 
         #region Purchase Invoice
 
-        public async Task<(int StatusCode, string Message, int TotalCount, IEnumerable<PurchasedInvoiceModel> Data)> GetPurchasedInvoicesAsync(PurchasedInvoiceSearchRequest request, int userId, int branchId)
+        public async Task<(int StatusCode, string Message, int TotalCount, IEnumerable<PurchasedInvoiceModel> Data)>    GetPurchasedInvoicesAsync(        PurchasedInvoiceSearchRequest request,        int userId,        int branchId)
         {
             using var connection = _dapperContext.CreateConnection();
 
             var parameters = new DynamicParameters();
 
-            parameters.Add("@Search", string.IsNullOrWhiteSpace(request.Search) ? null : request.Search);
+            parameters.Add(                "@Search",                string.IsNullOrWhiteSpace(request.Search)                    ? null                    : request.Search            );
 
-            parameters.Add("@PageNumber", request.PageNumber <= 0 ? 1 : request.PageNumber);
+            parameters.Add(                "@PageNumber",                request.PageNumber <= 0                    ? 1                    : request.PageNumber            );
 
-            parameters.Add("@PageSize", request.PageSize <= 0 ? 20 : request.PageSize);
+            parameters.Add(                "@PageSize",                request.PageSize <= 0                    ? 20                    : request.PageSize            );
 
             parameters.Add("@FromDate", request.FromDate);
             parameters.Add("@ToDate", request.ToDate);
@@ -357,24 +358,54 @@ namespace Shah_Traveling_Agency_API.Areas.BranchAdmin.Repositories
             parameters.Add("@UserID", userId);
             parameters.Add("@BranchId", branchId);
 
-            parameters.Add("@TotalCount", dbType: DbType.Int32, direction: ParameterDirection.Output);
+            parameters.Add(                "@TotalCount",                dbType: DbType.Int32,                direction: ParameterDirection.Output            );
 
-            parameters.Add("@Message", dbType: DbType.String, size: -1, direction: ParameterDirection.Output);
+            parameters.Add(                "@Message",                dbType: DbType.String,                size: -1,                direction: ParameterDirection.Output            );
 
-            parameters.Add("@ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
-
-
-            var data = (await connection.QueryAsync<PurchasedInvoiceModel>(
-                "Inventory.Sp_Get_Purchased_Invoice",
-                parameters,
-                commandType: CommandType.StoredProcedure)).ToList();
+            parameters.Add(                "@ReturnValue",                dbType: DbType.Int32,                direction: ParameterDirection.ReturnValue            );
 
 
-            var totalCount = parameters.Get<int?>("@TotalCount") ?? 0;
+            var data = (
+                await connection.QueryAsync<PurchasedInvoiceModel>(
+                    "Inventory.Sp_Get_Purchased_Invoice",
+                    parameters,
+                    commandType: CommandType.StoredProcedure
+                )
+            ).ToList();
 
-            var message = parameters.Get<string>("@Message") ?? "";
 
-            var statusCode = parameters.Get<int>("@ReturnValue");
+            // Convert PaymentHistory JSON string into List<>
+            foreach (var invoice in data)
+            {
+                if (!string.IsNullOrWhiteSpace(invoice.PaymentHistoryJson))
+                {
+                    try
+                    {
+                        invoice.PaymentHistory =
+                            JsonSerializer.Deserialize<
+                                List<PurchaseInvoicePaymentHistoryModel>
+                            >(invoice.PaymentHistoryJson)
+                            ?? new List<PurchaseInvoicePaymentHistoryModel>();
+                    }
+                    catch
+                    {
+                        invoice.PaymentHistory =
+                            new List<PurchaseInvoicePaymentHistoryModel>();
+                    }
+                }
+                else
+                {
+                    invoice.PaymentHistory =
+                        new List<PurchaseInvoicePaymentHistoryModel>();
+                }
+            }
+
+
+            var totalCount =                parameters.Get<int?>("@TotalCount") ?? 0;
+
+            var message =                parameters.Get<string>("@Message") ?? "";
+
+            var statusCode =                parameters.Get<int>("@ReturnValue");
 
 
             return (
@@ -384,6 +415,91 @@ namespace Shah_Traveling_Agency_API.Areas.BranchAdmin.Repositories
                 data
             );
         }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        // Update Payment Invoice
+        public async Task<(bool Status, int StatusCode, string Message, PurchasedInvoicePaymentResponse? Data)> UpdatePaymentInvoice(UpdatePurchasedInvoicePaymentRequest request, int userId, int BranchId)
+        {
+            try
+            {
+                using var connection = _dapperContext.CreateConnection();
+
+                var parameters = new DynamicParameters();
+
+                parameters.Add("@PurchaseInvoiceId", request.PurchaseInvoiceId);
+
+                parameters.Add("@BranchId", BranchId);
+
+                parameters.Add("@PaymentAmount", request.PaymentAmount);
+
+                parameters.Add("@PaymentDate", request.PaymentDate);
+
+                parameters.Add("@PaymentMethodId", request.PaymentMethodId);
+
+                parameters.Add("@PaymentReference", request.PaymentReference);
+
+                parameters.Add("@Remarks", request.Remarks);
+
+                parameters.Add("@UserID", userId);
+
+                parameters.Add("@Message", dbType: DbType.String, direction: ParameterDirection.Output, size: -1);
+
+                var result = await connection.QueryFirstOrDefaultAsync<PurchasedInvoicePaymentResponse>(
+                    "Payment.Sp_Update_PurchasedInvoicePayment",
+                    parameters,
+                    commandType: CommandType.StoredProcedure);
+
+                var message = parameters.Get<string>("@Message");
+
+                if (result == null)
+                {
+                    return (
+                        false,
+                        400,
+                        message ?? "Unable to add payment.",
+                        null
+                    );
+                }
+
+                return (
+                    true,
+                    200,
+                    message ?? "Payment added successfully.",
+                    result
+                );
+            }
+            catch (SqlException ex)
+            {
+                return (
+                    false,
+                    500,
+                    ex.Message,
+                    null
+                );
+            }
+            catch (Exception ex)
+            {
+                return (
+                    false,
+                    500,
+                    ex.Message,
+                    null
+                );
+            }
+        }
+
         #endregion
 
         #region Ticket Inventory 
