@@ -43,18 +43,9 @@ namespace Shah_Traveling_Agency_API.Areas.Authentications.Repositories
                 parameters.Add("@UserTypeId", request.UserTypeId);
                 parameters.Add("@BranchId", request.BranchId);
 
-                parameters.Add(
-                    "@Message",
-                    dbType: DbType.String,
-                    size: -1,
-                    direction: ParameterDirection.Output
-                );
+                parameters.Add("@Message", dbType: DbType.String, size: -1, direction: ParameterDirection.Output);
 
-                parameters.Add(
-                    "@ReturnValue",
-                    dbType: DbType.Int32,
-                    direction: ParameterDirection.ReturnValue
-                );
+                parameters.Add("@ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
 
                 await connection.ExecuteAsync(
                     "[Account].[Register_Users]",
@@ -64,8 +55,7 @@ namespace Shah_Traveling_Agency_API.Areas.Authentications.Repositories
 
                 int returnValue = parameters.Get<int>("@ReturnValue");
 
-                string message =
-                    parameters.Get<string>("@Message") ?? string.Empty;
+                string message = parameters.Get<string>("@Message") ?? string.Empty;
 
                 return returnValue switch
                 {

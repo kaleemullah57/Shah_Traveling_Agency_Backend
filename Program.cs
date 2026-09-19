@@ -1,8 +1,9 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.FileProviders;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.IdentityModel.Tokens;
+using Shah_Traveling_Agency_API.Areas.TicketHubArea.Models;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +25,7 @@ builder.Services.Scan(scan => scan
     .AsSelf()
     .WithScopedLifetime()
 );
+builder.Services.AddSignalR();
 
 // started
 // jwt Bearer Token.
@@ -67,7 +69,7 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
-
+app.MapHub<TicketHub>("/hubs/tickets");
 app.UseSwagger();
 app.UseSwaggerUI();
 

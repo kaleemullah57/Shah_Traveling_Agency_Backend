@@ -134,5 +134,62 @@ namespace Shah_Traveling_Agency_API.Areas.PublicArea.Controllers
             }
         }
         #endregion
+
+        #region Shared Tickets
+        [HttpPost("GetSharedTickets")]
+        public async Task<IActionResult> GetSharedTickets([FromBody] SharedTicketsRequest request)
+        {
+            try
+            {
+                var result = await _publicRepo.GetSharedTicketsAsync(request, UserId);
+
+                if (result.ReturnCode == 0)
+                {
+                    return StatusCode(500, new
+                    {
+                        status = false,
+                        statusCode = 500,
+                        message = result.Message,
+                        data = (object?)null,
+                        success = false
+                    });
+                }
+
+                if (result.ReturnCode == 2)
+                {
+                    return Ok(new
+                    {
+                        status = false,
+                        statusCode = 200,
+                        message = result.Message,
+                        data = new List<SharedTicketModel>(),
+                        totalCount = 0,
+                        success = true
+                    });
+                }
+
+                return Ok(new
+                {
+                    status = true,
+                    statusCode = 200,
+                    message = result.Message,
+                    data = result.Data,
+                    totalCount = result.TotalCount,
+                    success = true
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    status = false,
+                    statusCode = 500,
+                    message = ex.Message,
+                    data = (object?)null,
+                    success = false
+                });
+            }
+        }
+        #endregion
     }
 }

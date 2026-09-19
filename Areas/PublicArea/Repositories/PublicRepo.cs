@@ -86,5 +86,47 @@ namespace Shah_Traveling_Agency_API.Areas.PublicArea.Repositories
         }
         #endregion
 
+        #region Shared Tickets
+        public async Task<(int ReturnCode, string Message, int TotalCount, List<SharedTicketModel> Data)> GetSharedTicketsAsync(SharedTicketsRequest request, int? userId)
+        {
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@Search", request.Search);
+            parameters.Add("@PageNumber", request.PageNumber);
+            parameters.Add("@PageSize", request.PageSize);
+            parameters.Add("@FromDate", request.FromDate);
+            parameters.Add("@ToDate", request.ToDate);
+            parameters.Add("@UserID", userId);
+            parameters.Add("@FromSellingPrice", request.FromSellingPrice);
+            parameters.Add("@ToSellingPrice", request.ToSellingPrice);
+
+            parameters.Add("@TotalCount", dbType: DbType.Int32, direction: ParameterDirection.Output);
+
+            parameters.Add("@Message", dbType: DbType.String, size: -1, direction: ParameterDirection.Output);
+
+            parameters.Add("@ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
+
+            using var connection = _dapperContext.CreateConnection();
+            var data = (await connection.QueryAsync<SharedTicketModel>(
+                "Data.SP_GetSharedTickets",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            )).ToList();
+
+            int totalCount = parameters.Get<int?>("@TotalCount") ?? 0;
+
+            string message = parameters.Get<string>("@Message") ?? string.Empty;
+
+            int returnCode = parameters.Get<int?>("@ReturnValue") ?? 0;
+
+            return (
+                returnCode,
+                message,
+                totalCount,
+                data
+            );
+        }
+        #endregion
+
     }
 }

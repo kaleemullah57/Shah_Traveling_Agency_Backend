@@ -1,11 +1,13 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Shah_Traveling_Agency_API.Areas.Authentications.Controllers;
 using Shah_Traveling_Agency_API.Areas.Authentications.Dapper_Context;
 using Shah_Traveling_Agency_API.Areas.BranchAdmin.Models;
 using Shah_Traveling_Agency_API.Areas.BranchAdmin.Repositories;
 using Shah_Traveling_Agency_API.Areas.SuperAdmin.Repositories;
+using Shah_Traveling_Agency_API.Areas.TicketHubArea.Models;
 
 namespace Shah_Traveling_Agency_API.Areas.BranchAdmin.Controllers
 {
@@ -18,12 +20,14 @@ namespace Shah_Traveling_Agency_API.Areas.BranchAdmin.Controllers
         private readonly JwtService _jwtService;
         private readonly PasswordService _passwordService;
         private readonly BranchAdminRepo _branchAdminRepo;
+        private readonly IHubContext<TicketHub> _hubcontext;
 
-        public BranchAdminController(JwtService jwtService, PasswordService passwordService, BranchAdminRepo branchAdminRepo)
+        public BranchAdminController(JwtService jwtService, PasswordService passwordService, BranchAdminRepo branchAdminRepo,IHubContext<TicketHub> hubContext)
         {
             _jwtService = jwtService;
             _passwordService = passwordService;
             _branchAdminRepo = branchAdminRepo;
+            _hubcontext = hubContext;
         }
 
 
@@ -844,6 +848,13 @@ namespace Shah_Traveling_Agency_API.Areas.BranchAdmin.Controllers
                 switch (returnValue)
                 {
                     case 3:
+                        await _hubcontext.Clients.All.SendAsync(
+                            "Ticket Price Updated", new
+                            {
+                                purchaseinvoiceid = request.PurchaseInvoiceItemId,
+                                sellingPrice = request.SellingPrice
+                            }
+                            );
                         return Ok(new
                         {
                             status = true,
