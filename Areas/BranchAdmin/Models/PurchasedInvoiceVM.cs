@@ -90,7 +90,7 @@
         public decimal? PersonalItemKg { get; set; }
 
         public DateTime? ValidFrom { get; set; }
-        public DateTime ValidUntil { get; set; }
+        public string? ValidUntil { get; set; }
 
 
         // Payment History

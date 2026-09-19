@@ -340,17 +340,17 @@ namespace Shah_Traveling_Agency_API.Areas.BranchAdmin.Repositories
 
         #region Purchase Invoice
 
-        public async Task<(int StatusCode, string Message, int TotalCount, IEnumerable<PurchasedInvoiceModel> Data)>    GetPurchasedInvoicesAsync(        PurchasedInvoiceSearchRequest request,        int userId,        int branchId)
+        public async Task<(int StatusCode, string Message, int TotalCount, IEnumerable<PurchasedInvoiceModel> Data)> GetPurchasedInvoicesAsync(PurchasedInvoiceSearchRequest request, int userId, int branchId)
         {
             using var connection = _dapperContext.CreateConnection();
 
             var parameters = new DynamicParameters();
 
-            parameters.Add(                "@Search",                string.IsNullOrWhiteSpace(request.Search)                    ? null                    : request.Search            );
+            parameters.Add("@Search", string.IsNullOrWhiteSpace(request.Search) ? null : request.Search);
 
-            parameters.Add(                "@PageNumber",                request.PageNumber <= 0                    ? 1                    : request.PageNumber            );
+            parameters.Add("@PageNumber", request.PageNumber <= 0 ? 1 : request.PageNumber);
 
-            parameters.Add(                "@PageSize",                request.PageSize <= 0                    ? 20                    : request.PageSize            );
+            parameters.Add("@PageSize", request.PageSize <= 0 ? 20 : request.PageSize);
 
             parameters.Add("@FromDate", request.FromDate);
             parameters.Add("@ToDate", request.ToDate);
@@ -358,11 +358,11 @@ namespace Shah_Traveling_Agency_API.Areas.BranchAdmin.Repositories
             parameters.Add("@UserID", userId);
             parameters.Add("@BranchId", branchId);
 
-            parameters.Add(                "@TotalCount",                dbType: DbType.Int32,                direction: ParameterDirection.Output            );
+            parameters.Add("@TotalCount", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
-            parameters.Add(                "@Message",                dbType: DbType.String,                size: -1,                direction: ParameterDirection.Output            );
+            parameters.Add("@Message", dbType: DbType.String, size: -1, direction: ParameterDirection.Output);
 
-            parameters.Add(                "@ReturnValue",                dbType: DbType.Int32,                direction: ParameterDirection.ReturnValue            );
+            parameters.Add("@ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
 
 
             var data = (
@@ -401,11 +401,11 @@ namespace Shah_Traveling_Agency_API.Areas.BranchAdmin.Repositories
             }
 
 
-            var totalCount =                parameters.Get<int?>("@TotalCount") ?? 0;
+            var totalCount = parameters.Get<int?>("@TotalCount") ?? 0;
 
-            var message =                parameters.Get<string>("@Message") ?? "";
+            var message = parameters.Get<string>("@Message") ?? "";
 
-            var statusCode =                parameters.Get<int>("@ReturnValue");
+            var statusCode = parameters.Get<int>("@ReturnValue");
 
 
             return (
@@ -595,6 +595,121 @@ namespace Shah_Traveling_Agency_API.Areas.BranchAdmin.Repositories
                     null
                 );
             }
+        }
+        #endregion
+
+        #region Update Ticket Selling Price
+
+        public async Task<(int ReturnValue, string Message)> UpdateTicketSellingPriceAsync(UpdateTicketSellingPriceRequest vm, int UserId, int BranchId)
+        {
+            using var connection = _dapperContext.CreateConnection();
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@PurchaseInvoiceItemId", vm.PurchaseInvoiceItemId, DbType.Int32);
+
+            parameters.Add("@SellingPrice", vm.SellingPrice, DbType.Decimal);
+
+            parameters.Add("@UserId", UserId, DbType.Int32);
+
+            parameters.Add("@BranchId", BranchId, DbType.Int32);
+
+            parameters.Add("@Message", dbType: DbType.String, size: -1, direction: ParameterDirection.Output);
+
+            parameters.Add("@ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
+
+            await connection.ExecuteAsync(
+                "[Inventory].[SP_Update_TicketSellingPrice]",
+                parameters,
+                commandType: CommandType.StoredProcedure);
+
+            var returnValue = parameters.Get<int>("@ReturnValue");
+            var message = parameters.Get<string>("@Message") ?? string.Empty;
+
+            return (returnValue, message);
+        }
+        #endregion
+
+        #region Available Tickets
+
+        public async Task<(int ReturnValue, string Message, IEnumerable<AvailableTicketModel> Data)> GetAvailableTicketsAsync(AvailableTicketsRequest vm, int userId, int branchId)
+        {
+            using var connection = _dapperContext.CreateConnection();
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@Search", vm.Search, DbType.String);
+
+            parameters.Add("@PageNumber", vm.PageNumber, DbType.Int32);
+
+            parameters.Add("@PageSize", vm.PageSize, DbType.Int32);
+
+            parameters.Add("@FromDate", vm.FromDate, DbType.DateTime2);
+
+            parameters.Add("@ToDate", vm.ToDate, DbType.DateTime2);
+
+            parameters.Add("@FromSellingPrice", vm.FromSellingPrice, DbType.Decimal);
+
+            parameters.Add("@ToSellingPrice", vm.ToSellingPrice, DbType.Decimal);
+
+            parameters.Add("@UserID", userId, DbType.Int32);
+
+            parameters.Add("@BranchId", branchId, DbType.Int32);
+
+            parameters.Add("@Message", dbType: DbType.String, size: -1, direction: ParameterDirection.Output);
+
+            parameters.Add("@ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
+
+            var data = await connection.QueryAsync<AvailableTicketModel>(
+                "[Inventory].[Sp_Get_AvailableTickets]",
+                parameters,
+                commandType: CommandType.StoredProcedure);
+
+            var returnValue = parameters.Get<int>("@ReturnValue");
+
+            var message = parameters.Get<string>("@Message")
+                          ?? string.Empty;
+
+            return (
+                returnValue,
+                message,
+                data
+            );
+        }
+        #endregion
+
+        #region Share Tickets To Customers
+        public async Task<(bool Success, int StatusCode, string Message)> ShareTicketAsync(ShareTicketRequest request, int userId, int branchId)
+        {
+            using var connection = _dapperContext.CreateConnection();
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@PurchaseInvoiceItemId", request.PurchaseInvoiceItemId);
+
+            parameters.Add("@Quantity", request.Quantity);
+
+            parameters.Add("@UserId", userId);
+
+            parameters.Add("@BranchId", branchId);
+
+            parameters.Add("@Message", dbType: DbType.String, size: -1, direction: ParameterDirection.Output);
+
+            parameters.Add("@ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
+
+            await connection.ExecuteAsync(
+                "Inventory.SP_ShareTicket",
+                parameters,
+                commandType: CommandType.StoredProcedure);
+
+            var returnCode = parameters.Get<int>("@ReturnValue");
+
+            var message = parameters.Get<string>("@Message") ?? "Unable to share tickets.";
+
+            return (
+                returnCode == 6,
+                returnCode,
+                message
+            );
         }
         #endregion
     }

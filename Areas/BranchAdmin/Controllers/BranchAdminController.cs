@@ -808,5 +808,232 @@ namespace Shah_Traveling_Agency_API.Areas.BranchAdmin.Controllers
             }
         }
         #endregion
+
+        #region Update Ticket Selling Price
+
+        [HttpPut("UpdateTicketSellingPrice")]
+        public async Task<IActionResult> UpdateTicketSellingPrice([FromBody] UpdateTicketSellingPriceRequest request)
+        {
+            try
+            {
+                if (request.PurchaseInvoiceItemId <= 0)
+                {
+                    return BadRequest(new
+                    {
+                        status = false,
+                        statusCode = 400,
+                        message = "Invalid PurchaseInvoiceItemId.",
+                        data = (object?)null,
+                        success = false
+                    });
+                }
+
+                if (request.SellingPrice <= 0)
+                {
+                    return BadRequest(new
+                    {
+                        status = false,
+                        statusCode = 400,
+                        message = "Selling price must be greater than zero.",
+                        data = (object?)null,
+                        success = false
+                    });
+                }
+                var (returnValue, message) = await _branchAdminRepo.UpdateTicketSellingPriceAsync(request, UserId, BranchId);
+
+                switch (returnValue)
+                {
+                    case 3:
+                        return Ok(new
+                        {
+                            status = true,
+                            statusCode = 200,
+                            message,
+                            data = (object?)null,
+                            success = true
+                        });
+
+                    case 1:
+                        return StatusCode(403, new
+                        {
+                            status = false,
+                            statusCode = 403,
+                            message,
+                            data = (object?)null,
+                            success = false
+                        });
+
+                    case 2:
+                        return NotFound(new
+                        {
+                            status = false,
+                            statusCode = 404,
+                            message,
+                            data = (object?)null,
+                            success = false
+                        });
+
+                    case 4:
+                        return BadRequest(new
+                        {
+                            status = false,
+                            statusCode = 400,
+                            message,
+                            data = (object?)null,
+                            success = false
+                        });
+
+                    default:
+                        return StatusCode(500, new
+                        {
+                            status = false,
+                            statusCode = 500,
+                            message,
+                            data = (object?)null,
+                            success = false
+                        });
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    status = false,
+                    statusCode = 500,
+                    message = ex.Message,
+                    data = (object?)null,
+                    success = false
+                });
+            }
+        }
+        #endregion
+
+        #region Available Tickets
+
+        [HttpPost("GetAvailableTickets")]
+        public async Task<IActionResult> GetAvailableTickets([FromBody] AvailableTicketsRequest request)
+        {
+            try
+            {
+                var result = await _branchAdminRepo.GetAvailableTicketsAsync(request, UserId, BranchId);
+
+                switch (result.ReturnValue)
+                {
+                    case 2:
+
+                        return Ok(new
+                        {
+                            status = true,
+                            statusCode = 200,
+                            message = result.Message,
+                            data = result.Data,
+                            success = true
+                        });
+
+                    case 1:
+
+                        return StatusCode(403, new
+                        {
+                            status = false,
+                            statusCode = 403,
+                            message = result.Message,
+                            data = (object?)null,
+                            success = false
+                        });
+
+                    case 3:
+
+                        return Ok(new
+                        {
+                            status = false,
+                            statusCode = 200,
+                            message = result.Message,
+                            data = new List<AvailableTicketModel>(),
+                            success = false
+                        });
+
+                    default:
+
+                        return StatusCode(500, new
+                        {
+                            status = false,
+                            statusCode = 500,
+                            message = result.Message,
+                            data = (object?)null,
+                            success = false
+                        });
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    status = false,
+                    statusCode = 500,
+                    message = ex.Message,
+                    data = (object?)null,
+                    success = false
+                });
+            }
+        }
+        #endregion
+
+        #region Share Tickets To Customers
+
+        [HttpPost("ShareTicketsToCustomers")]
+        public async Task<IActionResult> ShareTicket([FromBody] ShareTicketRequest request)
+        {
+            try
+            {
+                if (request == null)
+                {
+                    return BadRequest(new
+                    {
+                        status = false,
+                        statusCode = 400,
+                        message = "Invalid request.",
+                        data = (object?)null,
+                        success = false
+                    });
+                }
+
+
+                var result = await _branchAdminRepo.ShareTicketAsync(request, UserId,BranchId);
+
+                if (!result.Success)
+                {
+                    return BadRequest(new
+                    {
+                        status = false,
+                        statusCode = result.StatusCode,
+                        message = result.Message,
+                        data = (object?)null,
+                        success = false
+                    });
+                }
+
+                return Ok(new
+                {
+                    status = true,
+                    statusCode = 200,
+                    message = result.Message,
+                    data = (object?)null,
+                    success = true
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    status = false,
+                    statusCode = 500,
+                    message = ex.Message,
+                    data = (object?)null,
+                    success = false
+                });
+            }
+        }
+
+        #endregion
     }
 }
