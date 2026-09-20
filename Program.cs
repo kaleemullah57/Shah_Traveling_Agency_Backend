@@ -53,7 +53,6 @@ builder.Services.AddAuthentication(
 });
 // Ended
 
-// CORS - Angular
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AngularPolicy", policy =>
@@ -64,7 +63,8 @@ builder.Services.AddCors(options =>
                 "https://localhost:4200"
             )
             .AllowAnyHeader()
-            .AllowAnyMethod();
+            .AllowAnyMethod()
+            .AllowCredentials();
     });
 });
 

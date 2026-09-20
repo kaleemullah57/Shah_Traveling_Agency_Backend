@@ -13,6 +13,9 @@
         public string PurchasedFrom { get; set; } = string.Empty;
         public string? PurchaseReference { get; set; }
         public DateTime? InvoiceDate { get; set; }
+        public int TicketTypeId { get; set; }
+        
+
 
         public int AirlineId { get; set; }
         public int FromAirportId { get; set; }

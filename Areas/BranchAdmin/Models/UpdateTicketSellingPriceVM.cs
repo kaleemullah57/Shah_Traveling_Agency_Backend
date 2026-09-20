@@ -68,6 +68,9 @@
         public string? ToCountry { get; set; }
 
         public DateTime? CreatedDate { get; set; }
+
+        public int? TicketTypeId { get; set; }
+        public string? TicketTypeName { get; set; }
     }
 
 

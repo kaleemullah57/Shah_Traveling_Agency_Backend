@@ -25,7 +25,7 @@
     }
     public class SharedTicketModel
     {
-        public int PurchaseInvoiceItemId { get; set; }
+        public int? PurchaseInvoiceItemId { get; set; }
 
         public string? AirlineName { get; set; }
 
@@ -43,9 +43,9 @@
 
         public DateTime? ArrivalDateTime { get; set; }
 
-        public int AvailableQuantity { get; set; }
+        public int? AvailableQuantity { get; set; }
 
-        public decimal SellingPrice { get; set; }
+        public decimal? SellingPrice { get; set; }
 
         public decimal? CheckedBaggageKg { get; set; }
 
@@ -57,13 +57,15 @@
 
         public DateTime? ValidUntil { get; set; }
 
-        public int BranchId { get; set; }
+        public int? BranchId { get; set; }
 
         public string? BranchName { get; set; }
 
         public DateTime? CreatedDate { get; set; }
 
         public string? CreatedBy { get; set; }
+        public int? TicketTypeId { get; set; }
+        public string? TicketTypeName { get; set; }
     }
 
 }

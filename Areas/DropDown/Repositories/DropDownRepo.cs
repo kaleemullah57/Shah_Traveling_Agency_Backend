@@ -315,6 +315,36 @@ namespace Shah_Traveling_Agency_API.Areas.DropDown.Repositories
             }
         }
         #endregion
+
+        #region Ticket Types
+
+        public async Task<(int ReturnCode, string Message, List<dynamic> Data)> GetTicketTypesDropDownAsync()
+        {
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@Message", dbType: DbType.String, size: -1, direction: ParameterDirection.Output);
+
+            parameters.Add("@ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
+
+            using var connection = _dapperContext.CreateConnection();
+
+            var data = (await connection.QueryAsync(
+                "DropDown.Sp_TicketTypes",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            )).ToList();
+
+            int returnCode = parameters.Get<int?>("@ReturnValue") ?? 0;
+
+            string message = parameters.Get<string>("@Message") ?? string.Empty;
+
+            return (
+                returnCode,
+                message,
+                data
+            );
+        }
+        #endregion
     }
 }
 

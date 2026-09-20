@@ -94,8 +94,8 @@ namespace Shah_Traveling_Agency_API.Areas.PublicArea.Repositories
             parameters.Add("@Search", request.Search);
             parameters.Add("@PageNumber", request.PageNumber);
             parameters.Add("@PageSize", request.PageSize);
-            parameters.Add("@FromDate", request.FromDate);
-            parameters.Add("@ToDate", request.ToDate);
+            parameters.Add("@FromDate", request.FromDate, dbType: DbType.Date);
+            parameters.Add("@ToDate", request.ToDate, dbType: DbType.Date);
             parameters.Add("@UserID", userId);
             parameters.Add("@FromSellingPrice", request.FromSellingPrice);
             parameters.Add("@ToSellingPrice", request.ToSellingPrice);

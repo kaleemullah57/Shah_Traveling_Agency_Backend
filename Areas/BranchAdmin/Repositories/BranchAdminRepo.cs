@@ -520,6 +520,7 @@ namespace Shah_Traveling_Agency_API.Areas.BranchAdmin.Repositories
                 parameters.Add("@PurchasedFrom", request.PurchasedFrom);
                 parameters.Add("@PurchaseReference", request.PurchaseReference);
                 parameters.Add("@InvoiceDate", request.InvoiceDate);
+                parameters.Add("@TicketTypeId", request.TicketTypeId);
 
                 parameters.Add("@AirlineId", request.AirlineId);
                 parameters.Add("@FromAirportId", request.FromAirportId);

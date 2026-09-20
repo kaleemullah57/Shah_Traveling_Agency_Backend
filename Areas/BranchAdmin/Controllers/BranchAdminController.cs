@@ -22,7 +22,7 @@ namespace Shah_Traveling_Agency_API.Areas.BranchAdmin.Controllers
         private readonly BranchAdminRepo _branchAdminRepo;
         private readonly IHubContext<TicketHub> _hubcontext;
 
-        public BranchAdminController(JwtService jwtService, PasswordService passwordService, BranchAdminRepo branchAdminRepo,IHubContext<TicketHub> hubContext)
+        public BranchAdminController(JwtService jwtService, PasswordService passwordService, BranchAdminRepo branchAdminRepo, IHubContext<TicketHub> hubContext)
         {
             _jwtService = jwtService;
             _passwordService = passwordService;
@@ -1009,7 +1009,7 @@ namespace Shah_Traveling_Agency_API.Areas.BranchAdmin.Controllers
                 }
 
 
-                var result = await _branchAdminRepo.ShareTicketAsync(request, UserId,BranchId);
+                var result = await _branchAdminRepo.ShareTicketAsync(request, UserId, BranchId);
 
                 if (!result.Success)
                 {
@@ -1023,6 +1023,17 @@ namespace Shah_Traveling_Agency_API.Areas.BranchAdmin.Controllers
                     });
                 }
 
+                await _hubcontext.Clients.All.SendAsync(
+                   "TicketUpdated",
+                   new
+                   {
+                       purchaseInvoiceItemId =
+                           request.PurchaseInvoiceItemId,
+
+                       sharedQuantityIncrease =
+                           request.Quantity
+                   }
+               );
                 return Ok(new
                 {
                     status = true,

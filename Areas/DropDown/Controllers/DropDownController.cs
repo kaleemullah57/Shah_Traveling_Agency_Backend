@@ -496,5 +496,60 @@ namespace Shah_Traveling_Agency_API.Areas.DropDown.Controllers
             }
         }
         #endregion
+
+        #region Ticket Types
+        [HttpGet("GetTicketTypesDropDown")]
+        public async Task<IActionResult> GetTicketTypesDropDown()
+        {
+            try
+            {
+                var result = await _dropDownRepo.GetTicketTypesDropDownAsync();
+
+                if (result.ReturnCode == 0)
+                {
+                    return StatusCode(500, new
+                    {
+                        status = false,
+                        statusCode = 500,
+                        message = result.Message,
+                        data = (object?)null,
+                        success = false
+                    });
+                }
+
+                if (result.ReturnCode == 2)
+                {
+                    return Ok(new
+                    {
+                        status = false,
+                        statusCode = 200,
+                        message = result.Message,
+                        data = new List<dynamic>(),
+                        success = true
+                    });
+                }
+
+                return Ok(new
+                {
+                    status = true,
+                    statusCode = 200,
+                    message = result.Message,
+                    data = result.Data,
+                    success = true
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    status = false,
+                    statusCode = 500,
+                    message = ex.Message,
+                    data = (object?)null,
+                    success = false
+                });
+            }
+        }
+        #endregion
     }
 }

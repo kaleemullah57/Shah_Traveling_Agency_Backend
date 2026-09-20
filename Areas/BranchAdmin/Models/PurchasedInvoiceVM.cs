@@ -91,6 +91,8 @@
 
         public DateTime? ValidFrom { get; set; }
         public string? ValidUntil { get; set; }
+        public int? TicketTypeId { get; set; }
+        public string? TicketTypeName { get; set; }
 
 
         // Payment History
