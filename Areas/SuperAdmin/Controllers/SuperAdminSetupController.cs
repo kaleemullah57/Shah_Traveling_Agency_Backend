@@ -2304,6 +2304,80 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Controllers
         #region Passenger Types
 
 
+        // Get Passenger Types
+        [HttpGet("GetPassengerTypes")]
+        public async Task<IActionResult> GetPassengerTypes()
+        {
+            try
+            {
+
+                var result = await _superAdminSetupRepo.GetPassengerTypesAsync(UserId);
+
+                if (result.ReturnCode == 2)
+                {
+                    return Ok(new
+                    {
+                        status = true,
+                        statusCode = 200,
+                        message = result.Message,
+                        data = result.Data,
+                        success = true
+                    });
+                }
+
+                if (result.ReturnCode == 3)
+                {
+                    return Ok(new
+                    {
+                        status = true,
+                        statusCode = 200,
+                        message = result.Message,
+                        data = new List<PassengerTypeModel>(),
+                        success = true
+                    });
+                }
+
+                if (result.ReturnCode == 1)
+                {
+                    return StatusCode(403, new
+                    {
+                        status = false,
+                        statusCode = 403,
+                        message = result.Message,
+                        data = (object?)null,
+                        success = false
+                    });
+                }
+
+                return BadRequest(new
+                {
+                    status = false,
+                    statusCode = 400,
+                    message = result.Message,
+                    data = (object?)null,
+                    success = false
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    status = false,
+                    statusCode = 500,
+                    message = ex.Message,
+                    data = (object?)null,
+                    success = false
+                });
+            }
+        }
+
+
+
+
+
+
+
+        // Add Passenger Types
         [HttpPost("AddPassengerType")]
         public async Task<IActionResult> AddPassengerType([FromBody] AddPassengerTypeRequest request)
         {

@@ -6,9 +6,7 @@
 
 
 
-
-
-    // Add Passenger Types
+    // Get Passenger Types
     public class PassengerTypeModel
     {
         public int PassengerTypeId { get; set; }
@@ -16,9 +14,13 @@
         public bool IsActive { get; set; }
         public int CreatedById { get; set; }
         public DateTime CreatedAt { get; set; }
-        public int? UpdatedById { get; set; }
-        public DateTime? UpdatedAt { get; set; }
     }
+
+
+
+
+
+    // Add Passenger Types
 
     public class AddPassengerTypeRequest
     {
