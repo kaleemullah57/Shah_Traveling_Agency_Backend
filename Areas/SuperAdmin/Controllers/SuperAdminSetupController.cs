@@ -2300,5 +2300,87 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Controllers
             }
         }
         #endregion
+
+        #region Passenger Types
+
+
+        [HttpPost("AddPassengerType")]
+        public async Task<IActionResult> AddPassengerType([FromBody] AddPassengerTypeRequest request)
+        {
+            try
+            {
+
+                var result = await _superAdminSetupRepo.AddPassengerTypeAsync(request, UserId);
+
+                if (result.ReturnCode == 4)
+                {
+                    return Ok(new
+                    {
+                        status = true,
+                        statusCode = 200,
+                        message = result.Message,
+                        data = (object?)null,
+                        success = true
+                    });
+                }
+
+                if (result.ReturnCode == 1)
+                {
+                    return BadRequest(new
+                    {
+                        status = false,
+                        statusCode = 400,
+                        message = result.Message,
+                        data = (object?)null,
+                        success = false
+                    });
+                }
+
+                if (result.ReturnCode == 2)
+                {
+                    return Conflict(new
+                    {
+                        status = false,
+                        statusCode = 409,
+                        message = result.Message,
+                        data = (object?)null,
+                        success = false
+                    });
+                }
+
+                if (result.ReturnCode == 3)
+                {
+                    return StatusCode(403, new
+                    {
+                        status = false,
+                        statusCode = 403,
+                        message = result.Message,
+                        data = (object?)null,
+                        success = false
+                    });
+                }
+
+                return BadRequest(new
+                {
+                    status = false,
+                    statusCode = 400,
+                    message = result.Message,
+                    data = (object?)null,
+                    success = false
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    status = false,
+                    statusCode = 500,
+                    message = ex.Message,
+                    data = (object?)null,
+                    success = false
+                });
+            }
+        }
+        #endregion
     }
 }

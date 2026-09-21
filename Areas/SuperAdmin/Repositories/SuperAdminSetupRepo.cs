@@ -1143,6 +1143,34 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Repositories
             }
         }
         #endregion
+
+        #region Passenger Types
+
+        public async Task<(int ReturnCode, string Message)> AddPassengerTypeAsync(AddPassengerTypeRequest request, int userId)
+        {
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@PassengerTypeName", request.PassengerTypeName);
+
+            parameters.Add("@IsActive", request.IsActive);
+
+            parameters.Add("@UserID", userId);
+
+            parameters.Add("@Message", dbType: DbType.String, size: -1, direction: ParameterDirection.Output);
+
+            parameters.Add("@ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
+
+            await _db.ExecuteAsync(
+                "[Data].[SP_Add_PassengerType]",
+                parameters,
+                commandType: CommandType.StoredProcedure);
+
+            var returnCode = parameters.Get<int>("@ReturnValue");
+            var message = parameters.Get<string>("@Message") ?? string.Empty;
+
+            return (returnCode, message);
+        }
+        #endregion
     }
 
 }
