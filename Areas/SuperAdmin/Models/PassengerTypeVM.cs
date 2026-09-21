@@ -27,4 +27,16 @@
         public string PassengerTypeName { get; set; } = string.Empty;
         public bool IsActive { get; set; } = true;
     }
+
+
+
+
+
+    // Update Passenger Types
+    public class UpdatePassengerTypeRequest
+    {
+        public int PassengerTypeId { get; set; }
+        public string PassengerTypeName { get; set; } = string.Empty;
+        public bool IsActive { get; set; }
+    }
 }

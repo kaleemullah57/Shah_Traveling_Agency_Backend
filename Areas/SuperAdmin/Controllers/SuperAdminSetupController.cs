@@ -2455,6 +2455,103 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Controllers
                 });
             }
         }
+
+
+
+
+
+
+
+        // Update Passenger Types
+        [HttpPut("UpdatePassengerType")]
+        public async Task<IActionResult> UpdatePassengerType([FromBody] UpdatePassengerTypeRequest request)
+        {
+            try
+            {
+
+                var result = await _superAdminSetupRepo.UpdatePassengerTypeAsync(request, userId);
+
+                if (result.ReturnCode == 5)
+                {
+                    return Ok(new
+                    {
+                        status = true,
+                        statusCode = 200,
+                        message = result.Message,
+                        data = (object?)null,
+                        success = true
+                    });
+                }
+
+                if (result.ReturnCode == 1)
+                {
+                    return NotFound(new
+                    {
+                        status = false,
+                        statusCode = 404,
+                        message = result.Message,
+                        data = (object?)null,
+                        success = false
+                    });
+                }
+
+                if (result.ReturnCode == 2)
+                {
+                    return BadRequest(new
+                    {
+                        status = false,
+                        statusCode = 400,
+                        message = result.Message,
+                        data = (object?)null,
+                        success = false
+                    });
+                }
+
+                if (result.ReturnCode == 3)
+                {
+                    return Conflict(new
+                    {
+                        status = false,
+                        statusCode = 409,
+                        message = result.Message,
+                        data = (object?)null,
+                        success = false
+                    });
+                }
+
+                if (result.ReturnCode == 4)
+                {
+                    return StatusCode(403, new
+                    {
+                        status = false,
+                        statusCode = 403,
+                        message = result.Message,
+                        data = (object?)null,
+                        success = false
+                    });
+                }
+
+                return BadRequest(new
+                {
+                    status = false,
+                    statusCode = 400,
+                    message = result.Message,
+                    data = (object?)null,
+                    success = false
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    status = false,
+                    statusCode = 500,
+                    message = ex.Message,
+                    data = (object?)null,
+                    success = false
+                });
+            }
+        }
         #endregion
     }
 }

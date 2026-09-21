@@ -1201,6 +1201,36 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Repositories
 
             return (returnCode, message);
         }
+
+
+
+
+
+
+        // Update Passenger Types
+        public async Task<(int ReturnCode, string Message)> UpdatePassengerTypeAsync(UpdatePassengerTypeRequest request, int userId)
+        {
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@PassengerTypeId", request.PassengerTypeId);
+            parameters.Add("@PassengerTypeName", request.PassengerTypeName);
+            parameters.Add("@IsActive", request.IsActive);
+            parameters.Add("@UserID", userId);
+
+            parameters.Add("@Message", dbType: DbType.String, size: -1, direction: ParameterDirection.Output);
+
+            parameters.Add("@ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
+
+            await _db.ExecuteAsync(
+                "[Data].[SP_Update_PassengerType]",
+                parameters,
+                commandType: CommandType.StoredProcedure);
+
+            var returnCode = parameters.Get<int>("@ReturnValue");
+            var message = parameters.Get<string>("@Message") ?? string.Empty;
+
+            return (returnCode, message);
+        }
         #endregion
     }
 
