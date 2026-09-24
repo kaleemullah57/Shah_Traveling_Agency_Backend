@@ -13,13 +13,18 @@
         public string PurchasedFrom { get; set; } = string.Empty;
         public string? PurchaseReference { get; set; }
         public DateTime? InvoiceDate { get; set; }
-        public int TicketTypeId { get; set; }
-        
 
+        public int TicketTypeId { get; set; }
 
         public int AirlineId { get; set; }
         public int FromAirportId { get; set; }
+
+        public int? FlightJourneyTypeId { get; set; }
+        public int? FlightRouteTypeId { get; set; }
+
         public int ToAirportId { get; set; }
+
+        public List<AddTicketPurchaseStopRequest> Stops { get; set; } = new();
 
         public DateTime DepartureDateTime { get; set; }
         public DateTime? ArrivalDateTime { get; set; }
@@ -40,7 +45,16 @@
 
         public int? PaymentMethodId { get; set; }
         public string? PaymentReference { get; set; }
+
         public string? Remarks { get; set; }
+    }
+
+    public class AddTicketPurchaseStopRequest
+    {
+        public int StopNumber { get; set; }
+        public int AirportId { get; set; }
+        public DateTime ArrivalDateTime { get; set; }
+        public DateTime DepartureDateTime { get; set; }
     }
 
     public class AddTicketPurchaseResponse

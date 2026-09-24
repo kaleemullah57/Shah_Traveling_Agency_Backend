@@ -94,7 +94,9 @@
         public int? TicketTypeId { get; set; }
         public string? TicketTypeName { get; set; }
 
+        public string? StopsJson { get; set; }
 
+        public List<PurchaseInvoiceStopModel> Stops { get; set; } = new();
         // Payment History
         public string? PaymentHistoryJson { get; set; }
 
@@ -102,8 +104,13 @@
             = new();
     }
 
-
-
+    public class PurchaseInvoiceStopModel
+    {
+        public int StopNumber { get; set; }
+        public string? StopAirport { get; set; }
+        public DateTime? ArrivalDateTime { get; set; }
+        public DateTime? DepartureDateTime { get; set; }
+    }
 
 
 

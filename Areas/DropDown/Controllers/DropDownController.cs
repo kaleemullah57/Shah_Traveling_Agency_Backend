@@ -551,5 +551,71 @@ namespace Shah_Traveling_Agency_API.Areas.DropDown.Controllers
             }
         }
         #endregion
+
+        #region Flight Types
+
+        [HttpGet("GetFlightTypesDropDown")]
+        public async Task<IActionResult> GetFlightTypesDropDown()
+        {
+            try
+            {
+                var result = await _dropDownRepo.GetFlightTypes();
+
+                return StatusCode(
+                    result.StatusCode,
+                    new
+                    {
+                        status = result.StatusCode == 200,
+                        statusCode = result.StatusCode,
+                        message = result.Message,
+                        data = result.Data,
+                        success = result.StatusCode == 200
+                    });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    status = false,
+                    statusCode = 500,
+                    message = ex.Message,
+                    success = false
+                });
+            }
+        }
+        #endregion
+
+        #region Flight Route Types
+
+        [HttpGet("GetFlightRouteTypesDropDown")]
+        public async Task<IActionResult> GetFlightRouteTypesDropDown()
+        {
+            try
+            {
+                var result = await _dropDownRepo.GetFlightRouteTypes();
+
+                return StatusCode(
+                    result.StatusCode,
+                    new
+                    {
+                        status = result.StatusCode == 200,
+                        statusCode = result.StatusCode,
+                        message = result.Message,
+                        data = result.Data,
+                        success = result.StatusCode == 200
+                    });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    status = false,
+                    statusCode = 500,
+                    message = ex.Message,
+                    success = false
+                });
+            }
+        }
+        #endregion
     }
 }

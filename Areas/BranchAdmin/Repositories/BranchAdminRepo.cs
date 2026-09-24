@@ -398,7 +398,31 @@ namespace Shah_Traveling_Agency_API.Areas.BranchAdmin.Repositories
                     invoice.PaymentHistory =
                         new List<PurchaseInvoicePaymentHistoryModel>();
                 }
+
+                if (!string.IsNullOrWhiteSpace(invoice.StopsJson))
+                {
+                    try
+                    {
+                        invoice.Stops =
+                            JsonSerializer.Deserialize<List<PurchaseInvoiceStopModel>>(
+                                invoice.StopsJson
+                            ) ?? new List<PurchaseInvoiceStopModel>();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("Stops JSON Error: " + ex.Message);
+
+                        invoice.Stops = new List<PurchaseInvoiceStopModel>();
+                    }
+                }
+                else
+                {
+                    invoice.Stops = new List<PurchaseInvoiceStopModel>();
+                }
             }
+
+
+
 
 
             var totalCount = parameters.Get<int?>("@TotalCount") ?? 0;
@@ -520,33 +544,77 @@ namespace Shah_Traveling_Agency_API.Areas.BranchAdmin.Repositories
                 parameters.Add("@PurchasedFrom", request.PurchasedFrom);
                 parameters.Add("@PurchaseReference", request.PurchaseReference);
                 parameters.Add("@InvoiceDate", request.InvoiceDate);
-                parameters.Add("@TicketTypeId", request.TicketTypeId);
 
                 parameters.Add("@AirlineId", request.AirlineId);
                 parameters.Add("@FromAirportId", request.FromAirportId);
+
+                parameters.Add("@FlightJourneyTypeId", request.FlightJourneyTypeId, DbType.Int32);
+
+                parameters.Add("@FlightRouteTypeId", request.FlightRouteTypeId, DbType.Int32);
+
                 parameters.Add("@ToAirportId", request.ToAirportId);
+
+                // ============================================
+                // STOPS TVP
+                // ============================================
+
+                var stopsTable = new DataTable();
+
+                stopsTable.Columns.Add("StopNumber", typeof(int));
+                stopsTable.Columns.Add("AirportId", typeof(int));
+                stopsTable.Columns.Add("ArrivalDateTime", typeof(DateTime));
+                stopsTable.Columns.Add("DepartureDateTime", typeof(DateTime));
+
+                foreach (var stop in request.Stops ?? new List<AddTicketPurchaseStopRequest>())
+                {
+                    stopsTable.Rows.Add(
+                        stop.StopNumber,
+                        stop.AirportId,
+                        stop.ArrivalDateTime,
+                        stop.DepartureDateTime);
+                }
+
+                parameters.Add("@Stops", stopsTable.AsTableValuedParameter("Inventory.TableType_TicketPurchaseStops"));
+
+                // ============================================
+                // FLIGHT DETAILS
+                // ============================================
 
                 parameters.Add("@DepartureDateTime", request.DepartureDateTime);
 
                 parameters.Add("@ArrivalDateTime", request.ArrivalDateTime);
 
                 parameters.Add("@Quantity", request.Quantity);
+
                 parameters.Add("@PurchasePrice", request.PurchasePrice);
                 parameters.Add("@SellingPrice", request.SellingPrice);
 
                 parameters.Add("@CheckedBaggageKg", request.CheckedBaggageKg);
+
                 parameters.Add("@HandBaggageKg", request.HandBaggageKg);
 
                 parameters.Add("@PersonalItemKg", request.PersonalItemKg);
 
+                parameters.Add("@TicketTypeId", request.TicketTypeId);
+
                 parameters.Add("@ValidFrom", request.ValidFrom);
                 parameters.Add("@ValidUntil", request.ValidUntil);
 
+                // ============================================
+                // PAYMENT
+                // ============================================
+
                 parameters.Add("@PaidAmount", request.PaidAmount);
+
                 parameters.Add("@PaymentMethodId", request.PaymentMethodId);
+
                 parameters.Add("@PaymentReference", request.PaymentReference);
 
                 parameters.Add("@Remarks", request.Remarks);
+
+                // ============================================
+                // OUTPUT / RETURN VALUE
+                // ============================================
 
                 parameters.Add("@Message", dbType: DbType.String, size: -1, direction: ParameterDirection.Output);
 
@@ -633,37 +701,87 @@ namespace Shah_Traveling_Agency_API.Areas.BranchAdmin.Repositories
 
         #region Available Tickets
 
-        public async Task<(int ReturnValue, string Message, IEnumerable<AvailableTicketModel> Data)> GetAvailableTicketsAsync(AvailableTicketsRequest vm, int userId, int branchId)
+        public async Task<(int ReturnValue, string Message, IEnumerable<AvailableTicketModel> Data)> GetAvailableTicketsAsync(
+            AvailableTicketsRequest vm,
+            int userId,
+            int branchId)
         {
             using var connection = _dapperContext.CreateConnection();
             var parameters = new DynamicParameters();
 
             parameters.Add("@Search", vm.Search, DbType.String);
-
             parameters.Add("@PageNumber", vm.PageNumber, DbType.Int32);
-
             parameters.Add("@PageSize", vm.PageSize, DbType.Int32);
-
             parameters.Add("@FromDate", vm.FromDate, DbType.DateTime2);
-
             parameters.Add("@ToDate", vm.ToDate, DbType.DateTime2);
-
             parameters.Add("@FromSellingPrice", vm.FromSellingPrice, DbType.Decimal);
-
             parameters.Add("@ToSellingPrice", vm.ToSellingPrice, DbType.Decimal);
-
             parameters.Add("@UserID", userId, DbType.Int32);
-
             parameters.Add("@BranchId", branchId, DbType.Int32);
 
             parameters.Add("@Message", dbType: DbType.String, size: -1, direction: ParameterDirection.Output);
 
             parameters.Add("@ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
 
-            var data = await connection.QueryAsync<AvailableTicketModel>(
-                "[Inventory].[Sp_Get_AvailableTickets]",
-                parameters,
-                commandType: CommandType.StoredProcedure);
+            var dbData = (
+                await connection.QueryAsync<AvailableTicketModel>(
+                    "[Inventory].[Sp_Get_AvailableTickets]",
+                    parameters,
+                    commandType: CommandType.StoredProcedure
+                )
+            ).ToList();
+
+            var data = dbData.Select(ticket =>
+            {
+                var model = new AvailableTicketModel
+                {
+                    PurchaseInvoiceItemId = ticket.PurchaseInvoiceItemId,
+                    PurchaseInvoiceId = ticket.PurchaseInvoiceId,
+                    DepartureDateTime = ticket.DepartureDateTime,
+                    ArrivalDateTime = ticket.ArrivalDateTime,
+                    Quantity = ticket.Quantity,
+                    SharedQuantity = ticket.SharedQuantity,
+                    SoldQuantity = ticket.SoldQuantity,
+                    RemainingInventory = ticket.RemainingInventory,
+                    AvailableToCustomer = ticket.AvailableToCustomer,
+                    AvailableToShare = ticket.AvailableToShare,
+                    PurchasePrice = ticket.PurchasePrice,
+                    SellingPrice = ticket.SellingPrice,
+                    CheckedBaggageKg = ticket.CheckedBaggageKg,
+                    HandBaggageKg = ticket.HandBaggageKg,
+                    PersonalItemKg = ticket.PersonalItemKg,
+                    ValidFrom = ticket.ValidFrom,
+                    ValidUntil = ticket.ValidUntil,
+                    BranchId = ticket.BranchId,
+                    BranchName = ticket.BranchName,
+                    AirlineName = ticket.AirlineName,
+                    AirlineCode = ticket.AirlineCode,
+                    FromAirport = ticket.FromAirport,
+                    ToAirport = ticket.ToAirport,
+                    FromCountry = ticket.FromCountry,
+                    ToCountry = ticket.ToCountry,
+                    CreatedDate = ticket.CreatedDate,
+                    TicketTypeId = ticket.TicketTypeId,
+                    TicketTypeName = ticket.TicketTypeName
+                };
+
+                if (!string.IsNullOrWhiteSpace(ticket.StopsJson))
+                {
+                    try
+                    {
+                        model.Stops =
+                            JsonSerializer.Deserialize<List<GetAvailablePurchaseInvoiceStopModel>>(
+                                ticket.StopsJson
+                            ) ?? new List<GetAvailablePurchaseInvoiceStopModel>();
+                    }
+                    catch
+                    {
+                        model.Stops = new List<GetAvailablePurchaseInvoiceStopModel>();
+                    }
+                }
+
+                return model;
+            }).ToList();
 
             var returnValue = parameters.Get<int>("@ReturnValue");
 

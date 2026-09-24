@@ -345,6 +345,53 @@ namespace Shah_Traveling_Agency_API.Areas.DropDown.Repositories
             );
         }
         #endregion
+
+        #region Flight Types
+        public async Task<(int StatusCode, string Message, IEnumerable<dynamic> Data)> GetFlightTypes()
+        {
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@Message", dbType: DbType.String, direction: ParameterDirection.Output, size: -1);
+
+            parameters.Add("ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
+
+            using var connection = _dapperContext.CreateConnection();
+
+            var data = await connection.QueryAsync(
+                "[DropDown].[Sp_FlightTypes]",
+                parameters,
+                commandType: CommandType.StoredProcedure);
+
+            var statusCode = parameters.Get<int>("ReturnValue");
+            var message = parameters.Get<string>("@Message") ?? string.Empty;
+
+            return (statusCode, message, data);
+        }
+        #endregion
+
+        #region Flight Route Types
+
+        public async Task<(int StatusCode, string Message, IEnumerable<dynamic> Data)> GetFlightRouteTypes()
+        {
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@Message", dbType: DbType.String, direction: ParameterDirection.Output, size: -1);
+
+            parameters.Add("ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
+
+            using var connection = _dapperContext.CreateConnection();
+
+            var data = await connection.QueryAsync(
+                "[DropDown].[Sp_FlightRouteTypes]",
+                parameters,
+                commandType: CommandType.StoredProcedure);
+
+            var statusCode = parameters.Get<int>("ReturnValue");
+            var message = parameters.Get<string>("@Message") ?? string.Empty;
+
+            return (statusCode, message, data);
+        }
+        #endregion
     }
 }
 

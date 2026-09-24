@@ -71,6 +71,17 @@
 
         public int? TicketTypeId { get; set; }
         public string? TicketTypeName { get; set; }
+        public string? StopsJson { get; set; }
+        public List<GetAvailablePurchaseInvoiceStopModel> Stops { get; set; } = new();
+    }
+
+
+    public class GetAvailablePurchaseInvoiceStopModel
+    {
+        public int StopNumber { get; set; }
+        public string? StopAirport { get; set; }
+        public DateTime? ArrivalDateTime { get; set; }
+        public DateTime? DepartureDateTime { get; set; }
     }
 
 
