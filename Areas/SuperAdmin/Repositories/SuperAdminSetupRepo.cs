@@ -1157,7 +1157,8 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Repositories
 
             parameters.Add("@ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
 
-            var data = (await _db.QueryAsync<PassengerTypeModel>(
+            using var connection = _dapperContext.CreateConnection();
+            var data = (await connection.QueryAsync<PassengerTypeModel>(
                 "[Data].[SP_Get_PassengerTypes]",
                 parameters,
                 commandType: CommandType.StoredProcedure))
@@ -1190,8 +1191,8 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Repositories
             parameters.Add("@Message", dbType: DbType.String, size: -1, direction: ParameterDirection.Output);
 
             parameters.Add("@ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
-
-            await _db.ExecuteAsync(
+            using var connection = _dapperContext.CreateConnection();
+            await connection.ExecuteAsync(
                 "[Data].[SP_Add_PassengerType]",
                 parameters,
                 commandType: CommandType.StoredProcedure);
@@ -1221,7 +1222,8 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Repositories
 
             parameters.Add("@ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
 
-            await _db.ExecuteAsync(
+            using var connection = _dapperContext.CreateConnection();
+            await connection.ExecuteAsync(
                 "[Data].[SP_Update_PassengerType]",
                 parameters,
                 commandType: CommandType.StoredProcedure);
@@ -1232,6 +1234,218 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Repositories
             return (returnCode, message);
         }
         #endregion
+
+        #region Flight Types
+
+        public async Task<(int StatusCode, string Message)> AddFlightJourneyType(FlightJourneyTypeAddRequest request, int createdById)
+        {
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@JourneyTypeName", request.JourneyTypeName);
+            parameters.Add("@Code", request.Code);
+            parameters.Add("@Description", request.Description);
+            parameters.Add("@CreatedById", createdById);
+
+            parameters.Add(
+                "@Message",
+                dbType: DbType.String,
+                direction: ParameterDirection.Output,
+                size: -1);
+
+            parameters.Add(
+                "ReturnValue",
+                dbType: DbType.Int32,
+                direction: ParameterDirection.ReturnValue);
+
+            using var connection = _dapperContext.CreateConnection();
+
+            await connection.ExecuteAsync(
+                "[Data].[SP_FlightJourneyType_Add]",
+                parameters,
+                commandType: CommandType.StoredProcedure);
+
+            var statusCode = parameters.Get<int>("ReturnValue");
+            var message = parameters.Get<string>("@Message") ?? "";
+
+            return (statusCode, message);
+        }
+
+
+
+
+        public async Task<(int StatusCode, string Message)> UpdateFlightJourneyType(FlightJourneyTypeUpdateRequest request, int modifiedById)
+        {
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@FlightJourneyTypeId", request.FlightJourneyTypeId);
+
+            parameters.Add("@JourneyTypeName", request.JourneyTypeName);
+
+            parameters.Add("@Code", request.Code);
+
+            parameters.Add("@Description", request.Description);
+
+            parameters.Add("@IsActive", request.IsActive);
+
+            parameters.Add("@ModifiedById", modifiedById);
+
+            parameters.Add("@Message", dbType: DbType.String, direction: ParameterDirection.Output, size: -1);
+
+            parameters.Add("ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
+
+            using var connection = _dapperContext.CreateConnection();
+            await connection.ExecuteAsync(
+                "[Data].[SP_FlightJourneyType_Update]",
+                parameters,
+                commandType: CommandType.StoredProcedure);
+
+            var statusCode = parameters.Get<int>("ReturnValue");
+            var message = parameters.Get<string>("@Message") ?? "";
+
+            return (statusCode, message);
+        }
+
+
+
+
+
+        public async Task<(int StatusCode, string Message, List<FlightJourneyType> Data)> GetFlightJourneyTypes(FlightJourneyTypeGetRequest request, int userId)
+        {
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@Search", request.Search);
+
+            parameters.Add("@IsActive", request.IsActive);
+
+            parameters.Add("@FlightJourneyTypeId", request.FlightJourneyTypeId);
+
+            parameters.Add("@UserID", userId);
+
+            parameters.Add("@Message", dbType: DbType.String, direction: ParameterDirection.Output, size: -1);
+
+            parameters.Add("ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
+
+            using var connection = _dapperContext.CreateConnection();
+            var data = (await connection.QueryAsync<FlightJourneyType>(
+                "[Data].[SP_FlightJourneyType_Get]",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            )).ToList();
+
+            var statusCode = parameters.Get<int>("ReturnValue");
+            var message = parameters.Get<string>("@Message") ?? "";
+
+            return (statusCode, message, data);
+        }
+
+        #endregion
+
+        #region Flight Route Types
+
+        public async Task<(int StatusCode, string Message)> AddFlightRouteType(FlightRouteTypeAddRequest request, int createdById)
+        {
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@RouteTypeName", request.RouteTypeName);
+            parameters.Add("@Code", request.Code);
+            parameters.Add("@Description", request.Description);
+            parameters.Add("@CreatedById", createdById);
+
+            parameters.Add("@Message", dbType: DbType.String, direction: ParameterDirection.Output, size: -1);
+
+            parameters.Add("ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
+
+            using var connection = _dapperContext.CreateConnection();
+
+            await connection.ExecuteAsync(
+                "[Data].[SP_FlightRouteType_Add]",
+                parameters,
+                commandType: CommandType.StoredProcedure);
+
+            var statusCode = parameters.Get<int>("ReturnValue");
+
+            var message = parameters.Get<string>("@Message") ?? "";
+
+            return (statusCode, message);
+        }
+
+
+
+
+
+        public async Task<(int StatusCode, string Message, List<FlightRouteType> Data)> GetFlightRouteTypes(FlightRouteTypeGetRequest request, int userId)
+        {
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@Search", request.Search);
+
+            parameters.Add("@IsActive", request.IsActive);
+
+            parameters.Add("@FlightRouteTypeId", request.FlightRouteTypeId);
+
+            parameters.Add("@UserID", userId);
+
+            parameters.Add("@Message", dbType: DbType.String, direction: ParameterDirection.Output, size: -1);
+
+            parameters.Add("ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
+
+            using var connection = _dapperContext.CreateConnection();
+
+            var data = (
+                await connection.QueryAsync<FlightRouteType>(
+                    "[Data].[SP_FlightRouteType_Get]",
+                    parameters,
+                    commandType: CommandType.StoredProcedure
+                )
+            ).ToList();
+
+            var statusCode = parameters.Get<int>("ReturnValue");
+
+            var message = parameters.Get<string>("@Message") ?? "";
+
+            return (statusCode, message, data);
+        }
+
+
+
+
+
+        public async Task<(int StatusCode, string Message)> UpdateFlightRouteType(FlightRouteTypeUpdateRequest request, int modifiedById)
+        {
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@FlightRouteTypeId", request.FlightRouteTypeId);
+
+            parameters.Add("@RouteTypeName", request.RouteTypeName);
+
+            parameters.Add("@Code", request.Code);
+
+            parameters.Add("@Description", request.Description);
+
+            parameters.Add("@IsActive", request.IsActive);
+
+            parameters.Add("@ModifiedById", modifiedById);
+
+            parameters.Add("@Message", dbType: DbType.String, direction: ParameterDirection.Output, size: -1);
+
+            parameters.Add("ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
+
+            using var connection = _dapperContext.CreateConnection();
+
+            await connection.ExecuteAsync(
+                "[Data].[SP_FlightRouteType_Update]",
+                parameters,
+                commandType: CommandType.StoredProcedure);
+
+            var statusCode = parameters.Get<int>("ReturnValue");
+
+            var message = parameters.Get<string>("@Message") ?? "";
+
+            return (statusCode, message);
+        }
+        #endregion
     }
 
 }
+
+

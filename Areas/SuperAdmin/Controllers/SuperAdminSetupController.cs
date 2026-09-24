@@ -2469,7 +2469,7 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Controllers
             try
             {
 
-                var result = await _superAdminSetupRepo.UpdatePassengerTypeAsync(request, userId);
+                var result = await _superAdminSetupRepo.UpdatePassengerTypeAsync(request, UserId);
 
                 if (result.ReturnCode == 5)
                 {
@@ -2550,6 +2550,212 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Controllers
                     data = (object?)null,
                     success = false
                 });
+            }
+        }
+        #endregion
+
+        #region Flight Types
+
+
+        [HttpPost("AddFlightJourneyType")]
+        public async Task<IActionResult> AddFlightJourneyType([FromBody] FlightJourneyTypeAddRequest request)
+        {
+            try
+            {
+                var result = await _superAdminSetupRepo
+                    .AddFlightJourneyType(request, UserId);
+
+                return StatusCode(
+                    result.StatusCode,
+                    new
+                    {
+                        status = result.StatusCode == 200,
+                        statusCode = result.StatusCode,
+                        message = result.Message,
+                        success = result.StatusCode == 200
+                    });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(
+                    500,
+                    new
+                    {
+                        status = false,
+                        statusCode = 500,
+                        message = ex.Message,
+                        success = false
+                    });
+            }
+        }
+        [HttpPut("UpdateFlightJourneyType")]
+        public async Task<IActionResult> UpdateFlightJourneyType([FromBody] FlightJourneyTypeUpdateRequest request)
+        {
+            try
+            {
+                var result = await _superAdminSetupRepo.UpdateFlightJourneyType(request, UserId);
+
+                return StatusCode(
+                    result.StatusCode,
+                    new
+                    {
+                        status = result.StatusCode == 200,
+                        statusCode = result.StatusCode,
+                        message = result.Message,
+                        success = result.StatusCode == 200
+                    });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(
+                    500,
+                    new
+                    {
+                        status = false,
+                        statusCode = 500,
+                        message = ex.Message,
+                        success = false
+                    });
+            }
+        }
+
+        [HttpPost("GetFlightJourneyTypes")]
+        public async Task<IActionResult> GetFlightJourneyTypes([FromBody] FlightJourneyTypeGetRequest request)
+        {
+            try
+            {
+
+                var result = await _superAdminSetupRepo.GetFlightJourneyTypes(request, UserId);
+
+                return StatusCode(
+                    result.StatusCode,
+                    new
+                    {
+                        status = result.StatusCode == 200,
+                        statusCode = result.StatusCode,
+                        message = result.Message,
+                        data = result.Data,
+                        success = result.StatusCode == 200
+                    });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(
+                    500,
+                    new
+                    {
+                        status = false,
+                        statusCode = 500,
+                        message = ex.Message,
+                        success = false
+                    });
+            }
+        }
+        #endregion
+
+        #region Flight Routes
+
+        [HttpPost("AddFlightRouteType")]
+        public async Task<IActionResult> AddFlightRouteType([FromBody] FlightRouteTypeAddRequest request)
+        {
+            try
+            {
+                var result = await _superAdminSetupRepo.AddFlightRouteType(request, UserId);
+
+                return StatusCode(
+                    result.StatusCode,
+                    new
+                    {
+                        status = result.StatusCode == 200,
+                        statusCode = result.StatusCode,
+                        message = result.Message,
+                        success = result.StatusCode == 200
+                    });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(
+                    500,
+                    new
+                    {
+                        status = false,
+                        statusCode = 500,
+                        message = ex.Message,
+                        success = false
+                    });
+            }
+        }
+
+
+
+
+
+
+        [HttpPost("GetFlightRouteTypes")]
+        public async Task<IActionResult> GetFlightRouteTypes([FromBody] FlightRouteTypeGetRequest request)
+        {
+            try
+            {
+                var result = await _superAdminSetupRepo.GetFlightRouteTypes(request, UserId);
+
+                return StatusCode(
+                    result.StatusCode,
+                    new
+                    {
+                        status = result.StatusCode == 200,
+                        statusCode = result.StatusCode,
+                        message = result.Message,
+                        data = result.Data,
+                        success = result.StatusCode == 200
+                    });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(
+                    500,
+                    new
+                    {
+                        status = false,
+                        statusCode = 500,
+                        message = ex.Message,
+                        success = false
+                    });
+            }
+        }
+
+
+
+
+
+
+        [HttpPut("UpdateFlightRouteType")]
+        public async Task<IActionResult> UpdateFlightRouteType([FromBody] FlightRouteTypeUpdateRequest request)
+        {
+            try
+            {
+                var result = await _superAdminSetupRepo.UpdateFlightRouteType(request, UserId);
+
+                return StatusCode(
+                    result.StatusCode,
+                    new
+                    {
+                        status = result.StatusCode == 200,
+                        statusCode = result.StatusCode,
+                        message = result.Message,
+                        success = result.StatusCode == 200
+                    });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(
+                    500,
+                    new
+                    {
+                        status = false,
+                        statusCode = 500,
+                        message = ex.Message,
+                        success = false
+                    });
             }
         }
         #endregion
