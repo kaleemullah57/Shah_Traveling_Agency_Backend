@@ -617,5 +617,23 @@ namespace Shah_Traveling_Agency_API.Areas.DropDown.Controllers
             }
         }
         #endregion
+
+        #region Passenger Types DropDown
+
+        [HttpGet("GetPassengerTypesDropDown")]
+        public async Task<IActionResult> GetPassengerTypesDropDown()
+        {
+            var result = await _dropDownRepo.GetPassengerTypes();
+
+            return Ok(new
+            {
+                status = true,
+                statusCode = 200,
+                message = "Passenger Types fetched successfully",
+                data = result,
+                success = true
+            });
+        }
+        #endregion
     }
 }

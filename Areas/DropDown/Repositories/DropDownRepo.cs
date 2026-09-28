@@ -392,6 +392,21 @@ namespace Shah_Traveling_Agency_API.Areas.DropDown.Repositories
             return (statusCode, message, data);
         }
         #endregion
+
+        #region Passenger Types DropDown
+
+        public async Task<IEnumerable<dynamic>> GetPassengerTypes()
+        {
+            using var connection = _dapperContext.CreateConnection();
+
+            var result = await connection.QueryAsync(
+                "DropDown.Sp_Get_PassengerTypes",
+                commandType: CommandType.StoredProcedure
+            );
+
+            return result;
+        }
+        #endregion
     }
 }
 

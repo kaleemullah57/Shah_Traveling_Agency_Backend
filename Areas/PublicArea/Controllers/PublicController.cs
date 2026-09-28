@@ -1,10 +1,12 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Shah_Traveling_Agency_API.Areas.Authentications.Controllers;
 using Shah_Traveling_Agency_API.Areas.Authentications.Dapper_Context;
 using Shah_Traveling_Agency_API.Areas.BranchAdmin.Repositories;
 using Shah_Traveling_Agency_API.Areas.PublicArea.Models;
 using Shah_Traveling_Agency_API.Areas.PublicArea.Repositories;
+using Shah_Traveling_Agency_API.Areas.TicketHubArea.Models;
 
 namespace Shah_Traveling_Agency_API.Areas.PublicArea.Controllers
 {
@@ -16,12 +18,14 @@ namespace Shah_Traveling_Agency_API.Areas.PublicArea.Controllers
         private readonly JwtService _jwtService;
         private readonly PasswordService _passwordService;
         private readonly PublicRepo _publicRepo;
+        private readonly IHubContext<TicketHub> _ticketHub;
 
-        public PublicController(JwtService jwtService, PasswordService passwordService, PublicRepo PublicRepo)
+        public PublicController(JwtService jwtService, PasswordService passwordService, PublicRepo PublicRepo, IHubContext<TicketHub> ticketHub)
         {
             _jwtService = jwtService;
             _passwordService = passwordService;
             _publicRepo = PublicRepo;
+            _ticketHub = ticketHub;
         }
 
 
@@ -188,6 +192,163 @@ namespace Shah_Traveling_Agency_API.Areas.PublicArea.Controllers
                     data = (object?)null,
                     success = false
                 });
+            }
+        }
+        #endregion
+
+        #region Book Passenger Ticket
+        [HttpPost("CreateBooking")]
+        public async Task<IActionResult> CreateBooking(
+    [FromBody] CreateBookingRequest request)
+        {
+            try
+            {
+                if (request == null)
+                {
+                    return BadRequest(new
+                    {
+                        status = false,
+                        statusCode = 400,
+                        message = "Invalid booking request.",
+                        data = (object?)null,
+                        success = false
+                    });
+                }
+
+                if (request.PurchaseInvoiceItemId <= 0)
+                {
+                    return BadRequest(new
+                    {
+                        status = false,
+                        statusCode = 400,
+                        message = "Purchase invoice item is required.",
+                        data = (object?)null,
+                        success = false
+                    });
+                }
+
+                if (request.Passengers == null ||
+                    request.Passengers.Count == 0)
+                {
+                    return BadRequest(new
+                    {
+                        status = false,
+                        statusCode = 400,
+                        message = "At least one passenger is required.",
+                        data = (object?)null,
+                        success = false
+                    });
+                }
+
+                if (UserId <= 0)
+                {
+                    return Unauthorized(new
+                    {
+                        status = false,
+                        statusCode = 401,
+                        message = "Unauthorized user.",
+                        data = (object?)null,
+                        success = false
+                    });
+                }
+
+                var result = await _publicRepo.CreateBookingAsync(
+                    request,
+                    UserId);
+
+                if (result.StatusCode == 200)
+                {
+                    await _ticketHub.Clients.All.SendAsync(
+                        "TicketInventoryUpdated",
+                        new
+                        {
+                            purchaseInvoiceItemId =
+                                request.PurchaseInvoiceItemId
+                        });
+                }
+
+                return StatusCode(
+                    result.StatusCode,
+                    new
+                    {
+                        status = result.StatusCode == 200,
+                        statusCode = result.StatusCode,
+                        message = result.Message,
+                        data = result.Data,
+                        success = result.StatusCode == 200
+                    });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    status = false,
+                    statusCode = 500,
+                    message = ex.Message,
+                    data = (object?)null,
+                    success = false
+                });
+            }
+        }
+        #endregion
+
+        #region Customer Bookings
+
+        [HttpPost("GetCustomerBookings")]
+        public async Task<IActionResult> GetCustomerBookings(CustomerBookingSearchRequest request)
+        {
+            try
+            {
+                if (UserId <= 0)
+                {
+                    return Unauthorized(new
+                    {
+                        status = false,
+                        statusCode = 401,
+                        message = "Unauthorized user.",
+                        data = (object?)null,
+                        success = false
+                    });
+                }
+
+
+                var result = await _publicRepo.GetCustomerBookingsAsync(request, UserId);
+
+
+                if (result == null || result.Count == 0)
+                {
+                    return Ok(new
+                    {
+                        status = true,
+                        statusCode = 200,
+                        message = "No bookings found.",
+                        data = new List<CustomerBookingModel>(),
+                        success = true
+                    });
+                }
+
+
+                return Ok(new
+                {
+                    status = true,
+                    statusCode = 200,
+                    message = "Customer bookings retrieved successfully.",
+                    data = result,
+                    success = true
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(
+                    500,
+                    new
+                    {
+                        status = false,
+                        statusCode = 500,
+                        message = ex.Message,
+                        data = (object?)null,
+                        success = false
+                    });
             }
         }
         #endregion

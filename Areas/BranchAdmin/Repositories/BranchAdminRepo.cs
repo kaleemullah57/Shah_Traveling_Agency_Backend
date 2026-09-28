@@ -831,5 +831,152 @@ namespace Shah_Traveling_Agency_API.Areas.BranchAdmin.Repositories
             );
         }
         #endregion
+
+        #region Reduce Shared Tickets Quantity
+
+        public async Task<(int StatusCode, string Message)> ReduceSharedTicketQuantityAsync(ReduceSharedTicketQuantityRequest request, int userId, int branchId)
+        {
+            using var connection = _dapperContext.CreateConnection();
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@PurchaseInvoiceItemId", request.PurchaseInvoiceItemId, DbType.Int32);
+
+            parameters.Add("@Quantity", request.Quantity, DbType.Int32);
+
+            parameters.Add("@UserId", userId, DbType.Int32);
+
+            parameters.Add("@BranchId", branchId, DbType.Int32);
+
+            parameters.Add("@Message", dbType: DbType.String, size: -1, direction: ParameterDirection.Output);
+
+            // SQL RETURN value
+            parameters.Add("@ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
+
+            await connection.ExecuteAsync(
+                "[Inventory].[SP_ReduceSharedTicketQuantity]",
+                parameters,
+                commandType: CommandType.StoredProcedure);
+
+            var statusCode = parameters.Get<int>("@ReturnValue");
+
+            var message = parameters.Get<string>("@Message") ?? string.Empty;
+
+            return (statusCode, message);
+        }
+        #endregion
+
+        #region Share Ticket Passenger Type Price
+
+
+        public async Task<(int StatusCode, string Message, int? Id)> AddSharedTicketPassengerPrice(AddSharedTicketPassengerPriceRequest request, int branchId, int createdById)
+        {
+            using var connection = _dapperContext.CreateConnection();
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@PurchaseInvoiceItemId", request.PurchaseInvoiceItemId);
+
+            parameters.Add("@PassengerTypeId", request.PassengerTypeId);
+
+            parameters.Add("@Price", request.Price);
+
+            parameters.Add("@BranchId", branchId);
+
+            parameters.Add("@CreatedById", createdById);
+
+            var result = await connection.QueryFirstOrDefaultAsync<dynamic>(
+                "[Data].[SP_Add_SharedTicketPassengerPrice]",
+                parameters,
+                commandType: CommandType.StoredProcedure);
+
+            return (
+                result?.StatusCode ?? 0,
+                result?.Message ?? "Unable to add passenger price.",
+                result?.SharedTicketPassengerPriceId != null
+                    ? (int?)Convert.ToInt32(result.SharedTicketPassengerPriceId)
+                    : null
+            );
+        }
+
+        public async Task<(int StatusCode, string Message, IEnumerable<SharedTicketPassengerPrice> Data)> GetSharedTicketPassengerPrices(int purchaseInvoiceItemId, int branchId, int createdById)
+        {
+            using var connection = _dapperContext.CreateConnection();
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@PurchaseInvoiceItemId", purchaseInvoiceItemId);
+
+            parameters.Add("@BranchId", branchId);
+
+            parameters.Add("@CreatedById", createdById);
+
+            using var multi = await connection.QueryMultipleAsync(
+                "[Data].[SP_Get_SharedTicketPassengerPrices]",
+                parameters,
+                commandType: CommandType.StoredProcedure);
+
+            var data = (await multi.ReadAsync<SharedTicketPassengerPrice>())
+                .ToList();
+
+            // The SP returns the status/message after the SELECT.
+            var result = await multi.ReadFirstOrDefaultAsync<dynamic>();
+
+            return (
+                result?.StatusCode ?? (data.Any() ? 1 : 0),
+                result?.Message ??
+                    (data.Any()
+                        ? "Branch Passenger Type Price Get Successfully"
+                        : "Branch Passenger Type Price Not Found"),
+                data
+            );
+        }
+
+        public async Task<(int StatusCode, string Message)> UpdateSharedTicketPassengerPrice(UpdateSharedTicketPassengerPriceRequest request, int branchId, int updatedById)
+        {
+            using var connection = _dapperContext.CreateConnection();
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@SharedTicketPassengerPriceId", request.SharedTicketPassengerPriceId);
+
+            parameters.Add("@Price", request.Price);
+
+            parameters.Add("@BranchId", branchId);
+
+            parameters.Add("@UpdatedById", updatedById);
+
+            var result = await connection.QueryFirstOrDefaultAsync<dynamic>(
+                "[Data].[SP_Update_SharedTicketPassengerPrice]",
+                parameters,
+                commandType: CommandType.StoredProcedure);
+
+            return (
+                result?.StatusCode ?? 0,
+                result?.Message ?? "Unable to update passenger price."
+            );
+        }
+
+        #endregion
+
+        #region Auto Expirty Of Ticket 
+
+
+        public async Task<List<ExpiredBookingModel>> ExpireHeldBookingsAsync()
+        {
+            using var connection = _dapperContext.CreateConnection();
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@Message", dbType: DbType.String, direction: ParameterDirection.Output, size: -1);
+
+            var result = await connection.QueryAsync<ExpiredBookingModel>(
+                "[Booking].[SP_ExpireHeldBookings]",
+                parameters,
+                commandType: CommandType.StoredProcedure);
+
+            return result.ToList();
+        }
+        #endregion
     }
 }

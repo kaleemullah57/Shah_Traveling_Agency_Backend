@@ -106,4 +106,17 @@
         public int PurchaseInvoiceItemId { get; set; }
         public int Quantity { get; set; }
     }
+
+
+
+
+
+
+    // Reduce Shared Ticket Quantity
+    public class ReduceSharedTicketQuantityRequest
+    {
+        public int PurchaseInvoiceItemId { get; set; }
+        public int Quantity { get; set; }
+    }
+
 }

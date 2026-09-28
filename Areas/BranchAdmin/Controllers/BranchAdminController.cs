@@ -849,12 +849,13 @@ namespace Shah_Traveling_Agency_API.Areas.BranchAdmin.Controllers
                 {
                     case 3:
                         await _hubcontext.Clients.All.SendAsync(
-                            "Ticket Price Updated", new
+                            "TicketUpdated",
+                            new
                             {
-                                purchaseinvoiceid = request.PurchaseInvoiceItemId,
+                                purchaseInvoiceItemId = request.PurchaseInvoiceItemId,
                                 sellingPrice = request.SellingPrice
                             }
-                            );
+                        );
                         return Ok(new
                         {
                             status = true,
@@ -1056,6 +1057,148 @@ namespace Shah_Traveling_Agency_API.Areas.BranchAdmin.Controllers
             }
         }
 
+        #endregion
+
+        #region Reduce Shared Ticket Quantity
+
+        [HttpPost("ReduceSharedTicketQuantity")]
+        public async Task<IActionResult> ReduceSharedTicketQuantity([FromBody] ReduceSharedTicketQuantityRequest request)
+        {
+            try
+            {
+                var result = await _branchAdminRepo.ReduceSharedTicketQuantityAsync(
+                    request,
+                    UserId,
+                    BranchId);
+
+                if (result.StatusCode == 7)
+                {
+                    // Notify connected clients that available ticket inventory changed
+                    await _hubcontext.Clients.All.SendAsync(
+                        "TicketUpdated",
+                        new
+                        {
+                            purchaseInvoiceItemId = request.PurchaseInvoiceItemId,
+                            sharedQuantityDecrease = request.Quantity
+                        });
+
+                    return Ok(new
+                    {
+                        status = true,
+                        statusCode = 200,
+                        message = result.Message,
+                        data = (object?)null,
+                        success = true
+                    });
+                }
+
+                return result.StatusCode switch
+                {
+                    1 or 2 or 3 or 4 or 5 or 6 => BadRequest(new
+                    {
+                        status = false,
+                        statusCode = 400,
+                        message = result.Message,
+                        data = (object?)null,
+                        success = false
+                    }),
+
+                    _ => StatusCode(500, new
+                    {
+                        status = false,
+                        statusCode = 500,
+                        message = result.Message,
+                        data = (object?)null,
+                        success = false
+                    })
+                };
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    status = false,
+                    statusCode = 500,
+                    message = ex.Message,
+                    data = (object?)null,
+                    success = false
+                });
+            }
+        }
+        #endregion
+
+        #region Share Ticket Passenger Type Price
+
+        [HttpPost("AddSharedTicketPassengerPrice")]
+        public async Task<IActionResult> AddSharedTicketPassengerPrice([FromBody] AddSharedTicketPassengerPriceRequest request)
+        {
+            var result = await _branchAdminRepo.AddSharedTicketPassengerPrice(request, BranchId, UserId);
+
+            if (result.StatusCode == 1)
+            {
+                await _hubcontext.Clients.All.SendAsync(
+                    "PassengerPriceAdded",
+                    new
+                    {
+                        purchaseInvoiceItemId = request.PurchaseInvoiceItemId,
+                        passengerTypeId = request.PassengerTypeId,
+                        price = request.Price,
+                        sharedTicketPassengerPriceId = result.Id
+                    });
+            }
+
+            return Ok(new
+            {
+                status = result.StatusCode == 1,
+                statusCode = result.StatusCode == 1 ? 200 : 400,
+                message = result.Message,
+                data = result.Id,
+                success = result.StatusCode == 1
+            });
+        }
+
+        [HttpPost("UpdateSharedTicketPassengerPrice")]
+        public async Task<IActionResult> UpdateSharedTicketPassengerPrice([FromBody] UpdateSharedTicketPassengerPriceRequest request)
+        {
+            var result = await _branchAdminRepo.UpdateSharedTicketPassengerPrice(request, BranchId, UserId);
+
+            if (result.StatusCode == 1)
+            {
+                await _hubcontext.Clients.All.SendAsync(
+                    "PassengerPriceUpdated",
+                    new
+                    {
+                        sharedTicketPassengerPriceId =
+                            request.SharedTicketPassengerPriceId,
+
+                        price = request.Price
+                    });
+            }
+
+            return Ok(new
+            {
+                status = result.StatusCode == 1,
+                statusCode = result.StatusCode == 1 ? 200 : 400,
+                message = result.Message,
+                data = (object?)null,
+                success = result.StatusCode == 1
+            });
+        }
+
+        [HttpGet("GetSharedTicketPassengerPrices")]
+        public async Task<IActionResult> GetSharedTicketPassengerPrices(int PurchaseInvoiceItemId)
+        {
+            var result = await _branchAdminRepo.GetSharedTicketPassengerPrices(PurchaseInvoiceItemId, BranchId, UserId);
+
+            return Ok(new
+            {
+                status = result.StatusCode == 1,
+                statusCode = result.StatusCode == 1 ? 200 : 404,
+                message = result.Message,
+                data = result.Data,
+                success = result.StatusCode == 1
+            });
+        }
         #endregion
     }
 }

@@ -66,6 +66,19 @@
         public string? CreatedBy { get; set; }
         public int? TicketTypeId { get; set; }
         public string? TicketTypeName { get; set; }
+        public string? StopsJson { get; set; }
+        public List<SharedTicketStopModel> Stops { get; set; } = new();
+    }
+
+    public class SharedTicketStopModel
+    {
+        public int StopNumber { get; set; }
+
+        public string? StopAirport { get; set; }
+
+        public DateTime? ArrivalDateTime { get; set; }
+
+        public DateTime? DepartureDateTime { get; set; }
     }
 
 }

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
+using Shah_Traveling_Agency_API.Areas.BranchAdmin.Repositories;
 using Shah_Traveling_Agency_API.Areas.TicketHubArea.Models;
 using System.Text;
 
@@ -25,8 +26,9 @@ builder.Services.Scan(scan => scan
     .AsSelf()
     .WithScopedLifetime()
 );
-builder.Services.AddSignalR();
 
+builder.Services.AddSignalR();
+builder.Services.AddHostedService<BookingExpirationBackgroundService>();
 // started
 // jwt Bearer Token.
 builder.Services.AddAuthentication(
