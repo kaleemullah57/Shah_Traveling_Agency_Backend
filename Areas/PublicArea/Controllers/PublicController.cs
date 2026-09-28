@@ -352,5 +352,94 @@ namespace Shah_Traveling_Agency_API.Areas.PublicArea.Controllers
             }
         }
         #endregion
+
+        #region Cancel Customer Ticket Bookings
+
+        [HttpPost("CancelBookingPassenger")]
+        public async Task<IActionResult> CancelBookingPassenger([FromBody] CancelBookingPassengerRequest request)
+        {
+            try
+            {
+                if (UserId <= 0)
+                {
+                    return Unauthorized(new
+                    {
+                        status = false,
+                        statusCode = 401,
+                        message = "Unauthorized user.",
+                        data = (object?)null,
+                        success = false
+                    });
+                }
+
+                if (request == null || request.BookingPassengerId <= 0)
+                {
+                    return BadRequest(new
+                    {
+                        status = false,
+                        statusCode = 400,
+                        message = "Booking passenger is required.",
+                        data = (object?)null,
+                        success = false
+                    });
+                }
+
+                var result = await _publicRepo.CancelBookingPassengerAsync(request, UserId);
+
+                if (result == null)
+                {
+                    return BadRequest(new
+                    {
+                        status = false,
+                        statusCode = 400,
+                        message = "Unable to cancel booking passenger.",
+                        data = (object?)null,
+                        success = false
+                    });
+                }
+
+                // Notify ticket inventory
+                await _ticketHub.Clients.All.SendAsync(
+                    "TicketInventoryUpdated",
+                    new
+                    {
+                        purchaseInvoiceItemId =
+                            result.PurchaseInvoiceItemId
+                    });
+
+                // Notify booking status
+                await _ticketHub.Clients.All.SendAsync(
+                    "BookingStatusUpdated",
+                    new
+                    {
+                        bookingId = result.BookingId,
+                        bookingPassengerId =
+                            result.BookingPassengerId
+                    });
+
+                return Ok(new
+                {
+                    status = true,
+                    statusCode = 200,
+                    message = "Ticket cancelled successfully.",
+                    data = result,
+                    success = true
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(
+                    500,
+                    new
+                    {
+                        status = false,
+                        statusCode = 500,
+                        message = ex.Message,
+                        data = (object?)null,
+                        success = false
+                    });
+            }
+        }
+        #endregion
     }
 }

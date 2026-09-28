@@ -326,5 +326,36 @@ namespace Shah_Traveling_Agency_API.Areas.PublicArea.Repositories
         }
         #endregion
 
+        #region Cancel Passenger Ticket Booking
+
+        public async Task<CancelBookingPassengerModel?> CancelBookingPassengerAsync(CancelBookingPassengerRequest vm, int cancelledByUserId)
+        {
+            using var connection = _dapperContext.CreateConnection();
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@BookingPassengerId", vm.BookingPassengerId, DbType.Int64);
+
+            parameters.Add("@CancelledByUserId", cancelledByUserId, DbType.Int32);
+
+            parameters.Add("@CancellationReason", vm.CancellationReason, DbType.String);
+
+            parameters.Add(
+                "@Message",
+                dbType: DbType.String,
+                direction: ParameterDirection.Output,
+                size: -1);
+
+            var result =
+                await connection.QueryFirstOrDefaultAsync<
+                    CancelBookingPassengerModel>(
+                        "[Booking].[SP_CancelBookingPassenger]",
+                        parameters,
+                        commandType: CommandType.StoredProcedure);
+
+            return result;
+        }
+        #endregion
+
     }
 }
