@@ -26,9 +26,7 @@
 
         public string? BookingStatus { get; set; }
 
-        public List<CustomerBookingPassengerModel>
-            PassengerBookingDetails
-        { get; set; } = new();
+        public List<CustomerBookingPassengerModel>       PassengerBookingDetails    { get; set; } = new();
     }
 
 
@@ -103,6 +101,7 @@
         public int? CancellationTypeId { get; set; }
 
         public string? CancellationTypeName { get; set; }
+        public List<CustomerBookingStopModel> Stops { get; set; } = new();
     }
 
 
@@ -138,5 +137,23 @@
         public string? BookingStatus { get; set; }
 
         public string? PassengerBookingDetails { get; set; }
+    }
+
+
+    public class CustomerBookingStopModel
+    {
+        public long PurchaseInvoiceItemStopId { get; set; }
+
+        public int PurchaseInvoiceItemId { get; set; }
+
+        public int StopNumber { get; set; }
+
+        public int AirportId { get; set; }
+
+        public string? StopAirport { get; set; }
+
+        public DateTime? ArrivalDateTime { get; set; }
+
+        public DateTime? DepartureDateTime { get; set; }
     }
 }

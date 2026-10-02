@@ -340,11 +340,7 @@ namespace Shah_Traveling_Agency_API.Areas.PublicArea.Repositories
 
             parameters.Add("@CancellationReason", vm.CancellationReason, DbType.String);
 
-            parameters.Add(
-                "@Message",
-                dbType: DbType.String,
-                direction: ParameterDirection.Output,
-                size: -1);
+            parameters.Add("@Message", dbType: DbType.String, direction: ParameterDirection.Output, size: -1);
 
             var result =
                 await connection.QueryFirstOrDefaultAsync<

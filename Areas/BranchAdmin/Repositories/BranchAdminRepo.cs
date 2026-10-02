@@ -978,5 +978,102 @@ namespace Shah_Traveling_Agency_API.Areas.BranchAdmin.Repositories
             return result.ToList();
         }
         #endregion
+
+        #region Get Hold / Cancelled / Confirm  Bookings
+
+        public async Task<(List<PendingHoldBookingVM> Data, int TotalCount, string Message, int ReturnValue)> GetPendingHoldBookingsAsync(PendingHoldBookingRequestVM model, int userId, int branchId)
+        {
+            var data = new List<PendingHoldBookingVM>();
+
+            var connectionString = _dapperContext.CreateConnection();
+
+
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@Search", string.IsNullOrWhiteSpace(model.Search) ? null : model.Search);
+
+            parameters.Add("@PageNumber", model.PageNumber);
+            parameters.Add("@PageSize", model.PageSize);
+            parameters.Add("@BookingStatus", model.BookingStatus);
+            parameters.Add("@UserID", userId);
+            parameters.Add("@BranchId", branchId);
+
+            parameters.Add("@TotalCount", dbType: DbType.Int32, direction: ParameterDirection.Output);
+
+            parameters.Add("@Message", dbType: DbType.String, size: 500, direction: ParameterDirection.Output);
+
+            parameters.Add("@ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
+
+            var result = await connectionString.QueryAsync<PendingHoldBookingVM>(
+                "Booking.Sp_Get_Pending_HoldBookings",
+                parameters,
+                commandType: CommandType.StoredProcedure);
+
+            data = result.ToList();
+
+            var totalCount = parameters.Get<int?>("@TotalCount") ?? 0;
+
+            var message = parameters.Get<string>("@Message") ?? "";
+
+            var returnValue = parameters.Get<int>("@ReturnValue");
+
+            // Deserialize JSON columns
+            foreach (var item in data)
+            {
+                if (!string.IsNullOrWhiteSpace(item.Passengers))
+                {
+                    try
+                    {
+                        item.PassengerList =
+                            JsonSerializer.Deserialize<
+                                List<PendingHoldBookingPassengerVM>
+                            >(
+                                item.Passengers,
+                                new JsonSerializerOptions
+                                {
+                                    PropertyNameCaseInsensitive = true
+                                }
+                            ) ?? new List<PendingHoldBookingPassengerVM>();
+                    }
+                    catch
+                    {
+                        item.PassengerList =
+                            new List<PendingHoldBookingPassengerVM>();
+                    }
+                }
+
+                if (!string.IsNullOrWhiteSpace(item.Stops))
+                {
+                    try
+                    {
+                        item.StopList =
+                            JsonSerializer.Deserialize<
+                                List<PendingHoldBookingStopVM>
+                            >(
+                                item.Stops,
+                                new JsonSerializerOptions
+                                {
+                                    PropertyNameCaseInsensitive = true
+                                }
+                            ) ?? new List<PendingHoldBookingStopVM>();
+                    }
+                    catch
+                    {
+                        item.StopList =
+                            new List<PendingHoldBookingStopVM>();
+                    }
+                }
+            }
+
+            return (
+                data,
+                totalCount,
+                message,
+                returnValue
+            );
+        }
+
+        #endregion
     }
 }

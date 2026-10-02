@@ -356,7 +356,7 @@ namespace Shah_Traveling_Agency_API.Areas.PublicArea.Controllers
         #region Cancel Customer Ticket Bookings
 
         [HttpPost("CancelBookingPassenger")]
-        public async Task<IActionResult> CancelBookingPassenger([FromBody] CancelBookingPassengerRequest request)
+        public async Task<IActionResult> CancelBookingPassenger(CancelBookingPassengerRequest request)
         {
             try
             {
@@ -398,23 +398,40 @@ namespace Shah_Traveling_Agency_API.Areas.PublicArea.Controllers
                     });
                 }
 
-                // Notify ticket inventory
                 await _ticketHub.Clients.All.SendAsync(
                     "TicketInventoryUpdated",
                     new
                     {
-                        purchaseInvoiceItemId =
-                            result.PurchaseInvoiceItemId
+                        purchaseInvoiceItemId = result.PurchaseInvoiceItemId
                     });
 
-                // Notify booking status
+
                 await _ticketHub.Clients.All.SendAsync(
                     "BookingStatusUpdated",
                     new
                     {
                         bookingId = result.BookingId,
-                        bookingPassengerId =
-                            result.BookingPassengerId
+
+                        bookingPassengerId = result.BookingPassengerId
+                    });
+
+                await _ticketHub.Clients.All.SendAsync(
+                    "BookingPassengerCancelled",
+                    new
+                    {
+                        bookingId = result.BookingId,
+
+                        bookingPassengerId = result.BookingPassengerId,
+
+                        purchaseInvoiceItemId = result.PurchaseInvoiceItemId,
+
+                        bookingStatusId = result.BookingStatusId,
+
+                        bookingStatus = result.BookingStatus,
+
+                        cancellationTypeId = result.CancellationTypeId,
+
+                        cancellationTypeName = result.CancellationTypeName
                     });
 
                 return Ok(new
