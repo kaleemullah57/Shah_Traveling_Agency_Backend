@@ -3,6 +3,7 @@ using Microsoft.Data.SqlClient;
 using Shah_Traveling_Agency_API.Areas.Authentications.Dapper_Context;
 using Shah_Traveling_Agency_API.Areas.BranchAdmin.Models;
 using Shah_Traveling_Agency_API.Areas.PublicArea.Models;
+using Shah_Traveling_Agency_API.Areas.SuperAdmin.Models;
 using System.Data;
 using System.Data.Common;
 using System.Text.Json;
@@ -350,6 +351,57 @@ namespace Shah_Traveling_Agency_API.Areas.PublicArea.Repositories
                         commandType: CommandType.StoredProcedure);
 
             return result;
+        }
+        #endregion
+
+        #region Get Customer Notifications
+
+        // Get Customer Notifications
+        public async Task<List<CustomerNotification>> GetCustomerNotifications(int? UserID, int? userTypeId, int? BranchId)
+        {
+            using var connection = _dapperContext.CreateConnection();
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@UserID", UserID, DbType.Int32);
+            parameters.Add("@userTypeId", userTypeId, DbType.Int32);
+            parameters.Add("@BranchId", BranchId, DbType.Int32);
+
+            var data = await connection.QueryAsync<CustomerNotification>(
+                "Data.SP_GetCustomerNotifications",
+                parameters,
+                commandType: CommandType.StoredProcedure);
+
+            return data.ToList();
+        }
+
+
+
+
+        // Read Notifications
+        public async Task<(int ReturnValue, string Message)> ReadCustomerNotification(int notificationId)
+        {
+            using var connection = _dapperContext.CreateConnection();
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@NotificationId", notificationId);
+            //parameters.Add("@CustomerId", customerId);
+
+            parameters.Add("@MessageOut", dbType: DbType.String, size: -1, direction: ParameterDirection.Output);
+
+            parameters.Add("@ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
+
+            await connection.ExecuteAsync(
+                "Data.SP_ReadCustomerNotification",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+
+            var returnValue = parameters.Get<int>("@ReturnValue");
+            var message = parameters.Get<string>("@MessageOut") ?? string.Empty;
+
+            return (returnValue, message);
         }
         #endregion
 

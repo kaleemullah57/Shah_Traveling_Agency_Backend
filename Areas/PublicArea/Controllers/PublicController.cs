@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Shah_Traveling_Agency_API.Areas.Authentications.Controllers;
 using Shah_Traveling_Agency_API.Areas.Authentications.Dapper_Context;
+using Shah_Traveling_Agency_API.Areas.BranchAdmin.Models;
 using Shah_Traveling_Agency_API.Areas.BranchAdmin.Repositories;
 using Shah_Traveling_Agency_API.Areas.PublicArea.Models;
 using Shah_Traveling_Agency_API.Areas.PublicArea.Repositories;
@@ -18,14 +19,16 @@ namespace Shah_Traveling_Agency_API.Areas.PublicArea.Controllers
         private readonly JwtService _jwtService;
         private readonly PasswordService _passwordService;
         private readonly PublicRepo _publicRepo;
+        private readonly BranchAdminRepo _branchAdminRepo;
         private readonly IHubContext<TicketHub> _ticketHub;
 
-        public PublicController(JwtService jwtService, PasswordService passwordService, PublicRepo PublicRepo, IHubContext<TicketHub> ticketHub)
+        public PublicController(JwtService jwtService, PasswordService passwordService, PublicRepo PublicRepo, IHubContext<TicketHub> ticketHub, BranchAdminRepo branchAdminRepo)
         {
             _jwtService = jwtService;
             _passwordService = passwordService;
             _publicRepo = PublicRepo;
             _ticketHub = ticketHub;
+            _branchAdminRepo = branchAdminRepo;
         }
 
 
@@ -198,8 +201,7 @@ namespace Shah_Traveling_Agency_API.Areas.PublicArea.Controllers
 
         #region Book Passenger Ticket
         [HttpPost("CreateBooking")]
-        public async Task<IActionResult> CreateBooking(
-    [FromBody] CreateBookingRequest request)
+        public async Task<IActionResult> CreateBooking([FromBody] CreateBookingRequest request)
         {
             try
             {
@@ -258,6 +260,10 @@ namespace Shah_Traveling_Agency_API.Areas.PublicArea.Controllers
 
                 if (result.StatusCode == 200)
                 {
+                    // ============================================================
+                    // INVENTORY UPDATED
+                    // ============================================================
+
                     await _ticketHub.Clients.All.SendAsync(
                         "TicketInventoryUpdated",
                         new
@@ -265,6 +271,46 @@ namespace Shah_Traveling_Agency_API.Areas.PublicArea.Controllers
                             purchaseInvoiceItemId =
                                 request.PurchaseInvoiceItemId
                         });
+
+                    // ============================================================
+                    // NEW BOOKING NOTIFICATION
+                    // ============================================================
+
+                    try
+                    {
+                        var notification =
+                            await _branchAdminRepo.CreateCustomerNotification(
+                                UserId,
+                                "NewBooking",
+                                "New Booking Received",
+                                "A new ticket booking has been created.",
+                                result.Data?.BookingId,
+                                result.Data?.BookingPassengerId
+                            );
+
+                        if (notification.ReturnValue != 0)
+                        {
+                            Console.WriteLine(
+                                $"New booking notification failed: {notification.Message}"
+                            );
+                        }
+                        else
+                        {
+                            // Tell connected clients to refresh notifications.
+                            // The actual notification is retrieved through
+                            // GET /api/Public/MyNotifications.
+                            await _ticketHub.Clients.All.SendAsync(
+                                "NotificationUpdated"
+                            );
+                        }
+                    }
+                    catch (Exception notificationEx)
+                    {
+                        Console.WriteLine(
+                            $"New booking notification error: " +
+                            notificationEx.Message
+                        );
+                    }
                 }
 
                 return StatusCode(
@@ -384,7 +430,10 @@ namespace Shah_Traveling_Agency_API.Areas.PublicArea.Controllers
                     });
                 }
 
-                var result = await _publicRepo.CancelBookingPassengerAsync(request, UserId);
+                var result =
+                    await _publicRepo.CancelBookingPassengerAsync(
+                        request,
+                        UserId);
 
                 if (result == null)
                 {
@@ -398,41 +447,155 @@ namespace Shah_Traveling_Agency_API.Areas.PublicArea.Controllers
                     });
                 }
 
+
+
+                // =========================================================
+                // 1. SAVE CUSTOMER NOTIFICATION
+                // =========================================================
+
+                // =========================================================
+                // 1. SAVE CUSTOMER NOTIFICATION + REALTIME NOTIFICATION
+                // =========================================================
+
+                try
+                {
+                    // Customer who owns this booking
+                    var customerId = result.CustomerId;
+
+                    var notification =
+                        await _branchAdminRepo.CreateCustomerNotification(
+                            customerId,
+                            "TicketCancelled",
+                            result.CancellationTypeName ?? "Ticket Cancelled",
+                            request.CancellationReason ??
+                                "Your ticket has been cancelled by Branch Admin.",
+                            result.BookingId,
+                            result.BookingPassengerId
+                        );
+
+                    if (
+                        notification.ReturnValue == 0 &&
+                        notification.Data != null
+                    )
+                    {
+                        
+                        await _ticketHub.Clients
+                            .User(customerId.ToString())
+                            .SendAsync(
+                                "CustomerNotification",
+                                new
+                                {
+                                    notificationId =
+                                        notification.Data.NotificationId,
+
+                                    customerId =
+                                        notification.Data.CustomerId,
+
+                                    notificationType =
+                                        notification.Data.NotificationType,
+
+                                    title =
+                                        notification.Data.Title,
+
+                                    message =
+                                        notification.Data.Message,
+
+                                    bookingId =
+                                        notification.Data.BookingId,
+
+                                    bookingPassengerId =
+                                        notification.Data.BookingPassengerId,
+
+                                    isRead =
+                                        notification.Data.IsRead,
+
+                                    createdDate =
+                                        notification.Data.CreatedDate,
+
+                                    readDate =
+                                        notification.Data.ReadDate
+                                });
+                    }
+                    else
+                    {
+                        Console.WriteLine(
+                            $"Notification creation failed: " +
+                            $"{notification.Message}"
+                        );
+                    }
+                }
+                catch (Exception notificationEx)
+                {
+                    Console.WriteLine(
+                        $"Customer notification error: " +
+                        $"{notificationEx.Message}"
+                    );
+                }
+
+
+                // =========================================================
+                // 3. INVENTORY UPDATED
+                // =========================================================
+
                 await _ticketHub.Clients.All.SendAsync(
                     "TicketInventoryUpdated",
                     new
                     {
-                        purchaseInvoiceItemId = result.PurchaseInvoiceItemId
+                        purchaseInvoiceItemId =
+                            result.PurchaseInvoiceItemId
                     });
 
+
+                // =========================================================
+                // 4. BOOKING STATUS UPDATED
+                // =========================================================
 
                 await _ticketHub.Clients.All.SendAsync(
                     "BookingStatusUpdated",
                     new
                     {
-                        bookingId = result.BookingId,
+                        bookingId =
+                            result.BookingId,
 
-                        bookingPassengerId = result.BookingPassengerId
+                        bookingPassengerId =
+                            result.BookingPassengerId
                     });
+
+
+                // =========================================================
+                // 5. BOOKING PASSENGER CANCELLED
+                // =========================================================
 
                 await _ticketHub.Clients.All.SendAsync(
                     "BookingPassengerCancelled",
                     new
                     {
-                        bookingId = result.BookingId,
+                        bookingId =
+                            result.BookingId,
 
-                        bookingPassengerId = result.BookingPassengerId,
+                        bookingPassengerId =
+                            result.BookingPassengerId,
 
-                        purchaseInvoiceItemId = result.PurchaseInvoiceItemId,
+                        purchaseInvoiceItemId =
+                            result.PurchaseInvoiceItemId,
 
-                        bookingStatusId = result.BookingStatusId,
+                        bookingStatusId =
+                            result.BookingStatusId,
 
-                        bookingStatus = result.BookingStatus,
+                        bookingStatus =
+                            result.BookingStatus,
 
-                        cancellationTypeId = result.CancellationTypeId,
+                        cancellationTypeId =
+                            result.CancellationTypeId,
 
-                        cancellationTypeName = result.CancellationTypeName
+                        cancellationTypeName =
+                            result.CancellationTypeName
                     });
+
+
+                // =========================================================
+                // 6. RESPONSE
+                // =========================================================
 
                 return Ok(new
                 {
@@ -455,6 +618,102 @@ namespace Shah_Traveling_Agency_API.Areas.PublicArea.Controllers
                         data = (object?)null,
                         success = false
                     });
+            }
+        }
+        #endregion
+
+        #region Get Notifications
+
+        [HttpGet("MyNotifications")]
+        public async Task<IActionResult> MyNotifications()
+        {
+            try
+            {
+
+                var data = await _publicRepo.GetCustomerNotifications(UserId,UserTypeId, BranchId);
+
+                return Ok(new
+                {
+                    status = true,
+                    statusCode = 200,
+                    message = "Notifications retrieved successfully.",
+                    data = data,
+                    success = true
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    status = false,
+                    statusCode = 500,
+                    message = ex.Message,
+                    data = (object?)null,
+                    success = false
+                });
+            }
+        }
+
+
+
+
+
+
+
+        // Mark Notifications
+        [HttpPost("MarkNotificationRead")]
+        public async Task<IActionResult> MarkNotificationRead([FromBody] MarkNotificationReadRequest request)
+        {
+            try
+            {
+                if (request == null || request.NotificationId <= 0)
+                {
+                    return BadRequest(new
+                    {
+                        status = false,
+                        statusCode = 400,
+                        message = "Notification is required.",
+                        data = (object?)null,
+                        success = false
+                    });
+                }
+
+                var result = await _publicRepo.ReadCustomerNotification(request.NotificationId);
+
+                if (result.ReturnValue != 0)
+                {
+                    return NotFound(new
+                    {
+                        status = false,
+                        statusCode = 404,
+                        message = result.Message,
+                        data = (object?)null,
+                        success = false
+                    });
+                }
+
+                return Ok(new
+                {
+                    status = true,
+                    statusCode = 200,
+                    message = result.Message,
+                    data = new
+                    {
+                        notificationId = request.NotificationId
+                    },
+                    success = true
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    status = false,
+                    statusCode = 500,
+                    message = ex.Message,
+                    data = (object?)null,
+                    success = false
+                });
             }
         }
         #endregion

@@ -1248,5 +1248,212 @@ namespace Shah_Traveling_Agency_API.Areas.BranchAdmin.Controllers
             }
         }
         #endregion
+
+        #region Confirm Held Tickets
+
+        [HttpPost("ConfirmHeldTicket")]
+        public async Task<IActionResult> ConfirmHeldTicket([FromBody] ConfirmHeldTicketRequest request)
+        {
+            try
+            {
+                if (request == null || request.BookingPassengerId <= 0)
+                {
+                    return BadRequest(new
+                    {
+                        status = false,
+                        statusCode = 400,
+                        message = "Booking passenger is required.",
+                        data = (object?)null,
+                        success = false
+                    });
+                }
+
+
+                var result = await _branchAdminRepo.ConfirmHeldTicket(request.BookingPassengerId, UserId, BranchId);
+
+
+
+                if (result.ReturnValue == 0)
+                {
+                    // 1. SAVE NOTIFICATION + SEND TO CUSTOMER
+                    if (result.Data != null &&
+                        result.Data.CustomerId > 0)
+                    {
+                        var notification =
+                            await _branchAdminRepo.CreateCustomerNotification(
+                                result.Data.CustomerId,
+                                "TicketConfirmed",
+                                "Ticket Confirmed",
+                                "Your ticket is confirmed.",
+                                result.Data.BookingId,
+                                result.Data.BookingPassengerId
+                            );
+
+                        if (notification.ReturnValue == 0 &&
+                            notification.Data != null)
+                        {
+                            // Send notification only to this customer
+                            await _hubcontext.Clients
+                                .User(result.Data.CustomerId.ToString())
+                                .SendAsync(
+                                    "CustomerNotification",
+                                    new
+                                    {
+                                        notificationId =
+                                            notification.Data.NotificationId,
+
+                                        customerId =
+                                            notification.Data.CustomerId,
+
+                                        type =
+                                            notification.Data.NotificationType,
+
+                                        title =
+                                            notification.Data.Title,
+
+                                        message =
+                                            notification.Data.Message,
+
+                                        bookingId =
+                                            notification.Data.BookingId,
+
+                                        bookingPassengerId =
+                                            notification.Data.BookingPassengerId,
+
+                                        bookingStatusId =
+                                            result.Data.BookingStatusId,
+
+                                        bookingStatus =
+                                            result.Data.BookingStatus,
+
+                                        isRead =
+                                            notification.Data.IsRead,
+
+                                        createdDate =
+                                            notification.Data.CreatedDate
+                                    }
+                                );
+                        }
+                        else
+                        {
+                            Console.WriteLine(
+                                $"Notification creation failed: {notification.Message}"
+                            );
+                        }
+                    }
+
+                    // 2. UPDATE BOOKING/PASSENGER IN REALTIME
+                    await _hubcontext.Clients.All.SendAsync(
+                        "BookingPassengerUpdated",
+                        new
+                        {
+                            bookingPassengerId =
+                                request.BookingPassengerId,
+
+                            bookingId =
+                                result.Data?.BookingId,
+
+                            bookingStatusId =
+                                result.Data?.BookingStatusId,
+
+                            bookingStatus =
+                                result.Data?.BookingStatus,
+
+                            approvedDate =
+                                result.Data?.ApprovedDate,
+
+                            approvedById =
+                                result.Data?.ApprovedById,
+
+                            approvedBy =
+                                result.Data?.ApprovedBy
+                        }
+                    );
+
+                    return Ok(new
+                    {
+                        status = true,
+                        statusCode = 200,
+                        message = result.Message,
+                        data = result.Data,
+                        success = true
+                    });
+                }
+
+
+                if (result.ReturnValue == 1)
+                {
+                    return StatusCode(403, new
+                    {
+                        status = false,
+                        statusCode = 403,
+                        message = result.Message,
+                        data = (object?)null,
+                        success = false
+                    });
+                }
+
+
+
+                if (result.ReturnValue == 2)
+                {
+                    return NotFound(new
+                    {
+                        status = false,
+                        statusCode = 404,
+                        message = result.Message,
+                        data = (object?)null,
+                        success = false
+                    });
+                }
+
+
+                if (result.ReturnValue == 3)
+                {
+                    return BadRequest(new
+                    {
+                        status = false,
+                        statusCode = 400,
+                        message = result.Message,
+                        data = (object?)null,
+                        success = false
+                    });
+                }
+
+
+                if (result.ReturnValue == 4)
+                {
+                    return BadRequest(new
+                    {
+                        status = false,
+                        statusCode = 400,
+                        message = result.Message,
+                        data = (object?)null,
+                        success = false
+                    });
+                }
+
+                return StatusCode(500, new
+                {
+                    status = false,
+                    statusCode = 500,
+                    message = result.Message,
+                    data = (object?)null,
+                    success = false
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    status = false,
+                    statusCode = 500,
+                    message = ex.Message,
+                    data = (object?)null,
+                    success = false
+                });
+            }
+        }
+        #endregion
     }
 }

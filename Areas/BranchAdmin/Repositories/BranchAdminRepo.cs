@@ -1075,5 +1075,79 @@ namespace Shah_Traveling_Agency_API.Areas.BranchAdmin.Repositories
         }
 
         #endregion
+
+        #region Confirm Held Tickets
+
+        public async Task<(int ReturnValue, string Message, ConfirmHeldTicketResponse? Data)> ConfirmHeldTicket(int bookingPassengerId, int userId, int branchId)
+        {
+            using var connection = _dapperContext.CreateConnection();
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@BookingPassengerId", bookingPassengerId, DbType.Int32);
+
+            parameters.Add("@UserId", userId, DbType.Int32);
+
+            parameters.Add("@BranchId", branchId, DbType.Int32);
+
+            parameters.Add("@Message", dbType: DbType.String, size: -1, direction: ParameterDirection.Output);
+
+            parameters.Add("@ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
+
+            var data = await connection.QueryFirstOrDefaultAsync<ConfirmHeldTicketResponse>(
+                "Booking.SP_ConfirmHeldTicket",
+                parameters,
+                commandType: CommandType.StoredProcedure);
+
+            var returnValue = parameters.Get<int>("@ReturnValue");
+
+            var message = parameters.Get<string>("@Message") ?? string.Empty;
+
+            return (
+                returnValue,
+                message,
+                data
+            );
+        }
+
+        #endregion
+
+        #region Create Confirm Ticket Notification 
+
+
+        public async Task<(int ReturnValue, string Message, CustomerNotification? Data)> CreateCustomerNotification(int customerId, string notificationType, string title, string message, long? bookingId, long? bookingPassengerId)
+        {
+            using var connection = _dapperContext.CreateConnection();
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@CustomerId", customerId, DbType.Int32);
+            parameters.Add("@NotificationType", notificationType, DbType.String);
+            parameters.Add("@Title", title, DbType.String);
+            parameters.Add("@Message", message, DbType.String);
+            parameters.Add("@BookingId", bookingId, DbType.Int32);
+            parameters.Add("@BookingPassengerId", bookingPassengerId, DbType.Int32);
+
+            parameters.Add("@MessageOut", dbType: DbType.String, size: -1, direction: ParameterDirection.Output);
+
+            parameters.Add("@ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
+
+            var data =
+                await connection.QueryFirstOrDefaultAsync<CustomerNotification>(
+                    "Data.SP_CreateCustomerNotification",
+                    parameters,
+                    commandType: CommandType.StoredProcedure);
+
+            var returnValue = parameters.Get<int>("@ReturnValue");
+
+            var messageOut = parameters.Get<string>("@MessageOut") ?? string.Empty;
+
+            return (
+                returnValue,
+                messageOut,
+                data
+            );
+        }
+
+        #endregion
     }
 }

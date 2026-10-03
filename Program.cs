@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
@@ -28,6 +29,7 @@ builder.Services.Scan(scan => scan
 );
 
 builder.Services.AddSignalR();
+builder.Services.AddSingleton<IUserIdProvider, UserIdProvider>();
 builder.Services.AddHostedService<BookingExpirationBackgroundService>();
 // started
 // jwt Bearer Token.

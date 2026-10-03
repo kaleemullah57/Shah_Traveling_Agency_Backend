@@ -34,6 +34,8 @@
     public class CreateBookingResponse
     {
         public long BookingId { get; set; }
+        public long BookingPassengerId { get; set; }
+        public int CustomerID { get; set; }
 
         public string BookingReference { get; set; } = string.Empty;
 

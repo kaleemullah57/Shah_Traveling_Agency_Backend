@@ -14,6 +14,9 @@
     {
         public long BookingId { get; set; }
         public long BookingPassengerId { get; set; }
+
+        public int CustomerId { get; set; }
+
         public int PurchaseInvoiceItemId { get; set; }
         public int BookingStatusId { get; set; }
         public string? BookingStatus { get; set; }
