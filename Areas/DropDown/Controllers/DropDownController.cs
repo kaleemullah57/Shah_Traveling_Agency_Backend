@@ -635,5 +635,29 @@ namespace Shah_Traveling_Agency_API.Areas.DropDown.Controllers
             });
         }
         #endregion
+
+        #region Customers DropDown
+
+        [HttpGet("GetCustomers")]
+        public async Task<IActionResult> GetCustomers([FromQuery] string? search = null)
+        {
+            var result = await _dropDownRepo.GetCustomersAsync(search);
+
+            return StatusCode(
+                result.StatusCode,
+                new
+                {
+                    status = result.StatusCode == 200
+                        ? "Success"
+                        : "Exception Error",
+
+                    statusCode = result.StatusCode,
+                    message = result.Message,
+                    data = result.Data,
+                    totalCount = result.TotalCount,
+                    success = result.StatusCode == 200
+                });
+        }
+        #endregion
     }
 }

@@ -762,7 +762,8 @@ namespace Shah_Traveling_Agency_API.Areas.BranchAdmin.Repositories
                     ToCountry = ticket.ToCountry,
                     CreatedDate = ticket.CreatedDate,
                     TicketTypeId = ticket.TicketTypeId,
-                    TicketTypeName = ticket.TicketTypeName
+                    TicketTypeName = ticket.TicketTypeName,
+                    PNRNo = ticket.PNRNo
                 };
 
                 if (!string.IsNullOrWhiteSpace(ticket.StopsJson))

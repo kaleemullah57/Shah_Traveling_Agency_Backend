@@ -71,6 +71,7 @@
 
         public int? TicketTypeId { get; set; }
         public string? TicketTypeName { get; set; }
+        public string? PNRNo { get; set; }
         public string? StopsJson { get; set; }
         public List<GetAvailablePurchaseInvoiceStopModel> Stops { get; set; } = new();
     }

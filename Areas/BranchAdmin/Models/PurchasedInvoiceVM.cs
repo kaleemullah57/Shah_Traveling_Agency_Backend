@@ -93,6 +93,7 @@
         public string? ValidUntil { get; set; }
         public int? TicketTypeId { get; set; }
         public string? TicketTypeName { get; set; }
+        public string? PNRNo { get; set; }
 
         public string? StopsJson { get; set; }
 

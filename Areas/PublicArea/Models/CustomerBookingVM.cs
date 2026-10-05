@@ -25,6 +25,8 @@
         public int BookingStatusId { get; set; }
 
         public string? BookingStatus { get; set; }
+        public string? PNRNo { get; set; }
+
 
         public List<CustomerBookingPassengerModel>       PassengerBookingDetails    { get; set; } = new();
     }
@@ -99,8 +101,30 @@
 
         // Cancellation Type
         public int? CancellationTypeId { get; set; }
-
         public string? CancellationTypeName { get; set; }
+
+        public int? FlightRouteTypeId { get; set; }
+        public string? FlightRouteType { get; set; }
+        public int? FlightJourneyTypeId { get; set; }
+        public string? FlightJourneyType { get; set; }
+
+
+        public decimal? checkedBaggagekg { get; set; }
+        public decimal? handBaggagekg { get; set; }
+        public decimal? personalItemkg { get; set; }
+
+
+
+        public int? FromAirportId { get; set; }
+        public string? FromAirport { get; set; }
+        public DateTime? DepartureDateTime { get; set; }
+        public int? ToAirportId { get; set; }
+        public string? ToAirport { get; set; }
+        public DateTime? ArrivalDateTime { get; set; }
+        public int? airlineId { get; set; }
+        public string? AirlineName { get; set; }
+
+
         public List<CustomerBookingStopModel> Stops { get; set; } = new();
     }
 
@@ -135,6 +159,7 @@
         public int BookingStatusId { get; set; }
 
         public string? BookingStatus { get; set; }
+        public string? PNRNo { get; set; }
 
         public string? PassengerBookingDetails { get; set; }
     }

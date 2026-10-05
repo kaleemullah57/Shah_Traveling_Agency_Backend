@@ -407,6 +407,46 @@ namespace Shah_Traveling_Agency_API.Areas.DropDown.Repositories
             return result;
         }
         #endregion
+
+        #region Customers DropDown
+
+        public async Task<(int StatusCode, string Message, List<dynamic> Data, int TotalCount)> GetCustomersAsync(string? search)
+        {
+            try
+            {
+                using var connection = _dapperContext.CreateConnection();
+
+                var parameters = new DynamicParameters();
+
+                parameters.Add("@Search", string.IsNullOrWhiteSpace(search) ? null : search.Trim(), DbType.String);
+
+                parameters.Add("@TotalCount", dbType: DbType.Int32, direction: ParameterDirection.Output);
+                var data = (await connection.QueryAsync<dynamic>(
+                    "[DropDown].[Sp_Get_Customers]",
+                    parameters,
+                    commandType: CommandType.StoredProcedure
+                )).ToList();
+
+                var totalCount = parameters.Get<int>("@TotalCount");
+
+                return (
+                    200,
+                    "Customers Retrieved Successfully",
+                    data,
+                    totalCount
+                );
+            }
+            catch (Exception ex)
+            {
+                return (
+                    500,
+                    ex.Message,
+                    new List<dynamic>(),
+                    0
+                );
+            }
+        }
+        #endregion
     }
 }
 

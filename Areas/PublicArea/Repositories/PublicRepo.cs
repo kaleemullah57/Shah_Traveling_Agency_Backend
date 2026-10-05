@@ -179,8 +179,14 @@ namespace Shah_Traveling_Agency_API.Areas.PublicArea.Repositories
             var passengerTable = new DataTable();
 
             passengerTable.Columns.Add("PassengerTypeId", typeof(int));
+            passengerTable.Columns.Add("FirstName", typeof(string));
+            passengerTable.Columns.Add("MiddleName", typeof(string));
+            passengerTable.Columns.Add("LastName", typeof(string));
+
             passengerTable.Columns.Add("FullName", typeof(string));
             passengerTable.Columns.Add("PassportNumber", typeof(string));
+            passengerTable.Columns.Add("PassportIssueDate", typeof(string));
+            passengerTable.Columns.Add("PassportExpireDate", typeof(string));
             passengerTable.Columns.Add("DateOfBirth", typeof(DateTime));
             passengerTable.Columns.Add("Gender", typeof(string));
             passengerTable.Columns.Add("Nationality", typeof(string));
@@ -190,14 +196,36 @@ namespace Shah_Traveling_Agency_API.Areas.PublicArea.Repositories
             foreach (var passenger in request.Passengers)
             {
                 var row = passengerTable.NewRow();
-
+                
+                var fullName = string.Join(
+                    " ",
+                    new[]
+                    {
+                        passenger.FirstName,
+                        passenger.MiddleName,
+                        passenger.LastName
+                    }
+                    .Where(x => !string.IsNullOrWhiteSpace(x))
+                    .Select(x => x.Trim())
+                );
                 row["PassengerTypeId"] = passenger.PassengerTypeId;
-                row["FullName"] = passenger.FullName;
+                row["FullName"] = fullName;
+                row["FirstName"] = passenger.FirstName;
+                row["MiddleName"] = passenger.MiddleName;
+                row["LastName"] = passenger.LastName;
 
                 row["PassportNumber"] =
                     string.IsNullOrWhiteSpace(passenger.PassportNumber)
                         ? DBNull.Value
                         : passenger.PassportNumber;
+                row["PassportIssueDate"] =
+                    string.IsNullOrWhiteSpace(passenger.PassportIssueDate)
+                        ? DBNull.Value
+                        : passenger.PassportIssueDate;
+                row["PassportExpireDate"] =
+                    string.IsNullOrWhiteSpace(passenger.PassportExpireDate)
+                        ? DBNull.Value
+                        : passenger.PassportExpireDate;
 
                 row["DateOfBirth"] =
                     passenger.DateOfBirth.HasValue
@@ -303,6 +331,8 @@ namespace Shah_Traveling_Agency_API.Areas.PublicArea.Repositories
                     BookingStatusId = item.BookingStatusId,
 
                     BookingStatus = item.BookingStatus,
+
+                    PNRNo = item.PNRNo,
 
                     PassengerBookingDetails = new List<CustomerBookingPassengerModel>()
                 };
