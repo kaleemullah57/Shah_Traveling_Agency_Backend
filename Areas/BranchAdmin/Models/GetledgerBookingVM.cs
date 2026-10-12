@@ -1,4 +1,6 @@
-﻿namespace Shah_Traveling_Agency_API.Areas.BranchAdmin.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Shah_Traveling_Agency_API.Areas.BranchAdmin.Models
 {
     public class GetledgerBookingVM
     {
@@ -69,4 +71,94 @@
         public int BookingStatusId { get; set; }
         public float UnitPrice { get; set; }
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // Add ledger Payments
+
+
+    public class TicketPaymentAddModel
+    {
+        [Required]
+        [Range(1, int.MaxValue)]
+        public int CustomerId { get; set; }
+
+        [Required]
+        [Range(1, int.MaxValue)]
+        public int BookingId { get; set; }
+
+        /// <summary>
+        /// 1 = Single Passenger
+        /// 2 = Equal Distribution
+        /// 3 = Custom Distribution
+        /// </summary>
+        [Required]
+        [Range(1, 3)]
+        public int PaymentMethodId { get; set; }
+
+        [Required]
+        [Range(typeof(decimal), "0.01", "9999999999999999")]
+        public decimal TotalAmount { get; set; }
+
+        public DateTime? PaymentDate { get; set; }
+
+        [StringLength(100)]
+        public string? PaymentReference { get; set; }
+
+        [StringLength(500)]
+        public string? Remarks { get; set; }
+
+        [Required]
+        [MinLength(1)]
+        public List<TicketPaymentAllocationModel> Allocations { get; set; } = new();
+    }
+
+    public class TicketPaymentAllocationModel
+    {
+        [Required]
+        [Range(1, int.MaxValue)]
+        public int BookingPassengerId { get; set; }
+
+        public decimal? AllocatedAmount { get; set; }
+    }
+
+    public sealed class TicketPaymentAddResponse
+    {
+        public long TicketPaymentId { get; set; }
+        public int CustomerId { get; set; }
+        public int BookingId { get; set; }
+        public int PaymentMethodId { get; set; }
+        public decimal TotalAmount { get; set; }
+        public string Message { get; set; } = string.Empty;
+    }
+
+    public sealed class TicketPaymentAddedEvent
+    {
+        public long TicketPaymentId { get; set; }
+        public int CustomerId { get; set; }
+        public int BookingId { get; set; }
+        public int PaymentMethodId { get; set; }
+        public decimal TotalAmount { get; set; }
+        public DateTime PaymentDate { get; set; }
+        public List<int> BookingPassengerIds { get; set; } = new();
+    }
+
+
 }
