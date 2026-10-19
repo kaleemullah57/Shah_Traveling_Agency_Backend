@@ -10,6 +10,7 @@
     // Add Tickets To Inventory
     public class AddTicketPurchaseRequest
     {
+        public string PNRNo { get; set; }
         public string PurchasedFrom { get; set; } = string.Empty;
         public string? PurchaseReference { get; set; }
         public DateTime? InvoiceDate { get; set; }

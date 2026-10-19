@@ -540,6 +540,7 @@ namespace Shah_Traveling_Agency_API.Areas.BranchAdmin.Repositories
 
                 parameters.Add("@BranchId", branchId, DbType.Int32);
                 parameters.Add("@CreatedById", createdById, DbType.Int32);
+                parameters.Add("@PNRNo", request.PNRNo);
 
                 parameters.Add("@PurchasedFrom", request.PurchasedFrom);
                 parameters.Add("@PurchaseReference", request.PurchaseReference);

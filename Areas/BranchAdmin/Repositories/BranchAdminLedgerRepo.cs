@@ -152,7 +152,46 @@ namespace Shah_Traveling_Agency_API.Areas.BranchAdmin.Repositories
 
         #endregion
 
+        #region Get Full Ledger
 
+        public async Task<(int StatusCode, string Message, int TotalCount, IEnumerable<LedgerFullDetailsModel> Data)> GetLedgerFullDetailsAsync(LedgerFullDetailsRequest model, int userId, int branchId)
+        {
+            using var connection = _dapperContext.CreateConnection();
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@Search", model.Search, DbType.String, size: 200);
+            parameters.Add("@PageNumber", model.PageNumber, DbType.Int32);
+            parameters.Add("@PageSize", model.PageSize, DbType.Int32);
+
+            parameters.Add("@UserID", userId, DbType.Int32);
+            parameters.Add("@BranchId", branchId, DbType.Int32);
+            parameters.Add("@AmountStatus", model.AmountStatus, DbType.Int32);
+
+            parameters.Add("@TotalCount", dbType: DbType.Int32, direction: ParameterDirection.Output);
+
+            parameters.Add("@Message", dbType: DbType.String, size: -1, direction: ParameterDirection.Output);
+
+            parameters.Add("ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
+
+            var data = (await connection.QueryAsync<LedgerFullDetailsModel>(
+                "Ledger.Sp_GetLedgerFullDetails",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            )).ToList();
+
+            int returnValue = parameters.Get<int>("ReturnValue");
+            int totalCount = parameters.Get<int>("@TotalCount");
+            string message = parameters.Get<string>("@Message") ?? string.Empty;
+
+            return (
+                returnValue,
+                message,
+                totalCount,
+                data
+            );
+        }
+        #endregion
 
     }
 }

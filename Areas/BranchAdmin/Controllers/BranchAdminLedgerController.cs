@@ -241,5 +241,75 @@ namespace Shah_Traveling_Agency_API.Areas.BranchAdmin.Controllers
             }
         }
         #endregion
+
+        #region Get Full Ledger
+
+        [HttpPost("GetLedgerFullDetails")]
+        public async Task<IActionResult> GetLedgerFullDetails([FromBody] LedgerFullDetailsRequest model)
+        {
+            try
+            {
+                if (model.AmountStatus < 0 || model.AmountStatus > 4)
+                {
+                    return BadRequest(new
+                    {
+                        status = "error",
+                        statusCode = 400,
+                        message = "Invalid amount status.",
+                        data = (object?)null,
+                        success = false
+                    });
+                }
+
+
+
+                var result = await _branchAdminLedgerRepo.GetLedgerFullDetailsAsync(model, UserId, BranchId);
+
+                if (result.StatusCode != 1)
+                {
+                    bool forbidden = result.Message.Contains(
+                        "Access denied",
+                        StringComparison.OrdinalIgnoreCase);
+
+                    int httpStatus = forbidden ? 403 : 400;
+
+                    return StatusCode(httpStatus, new
+                    {
+                        status = "error",
+                        statusCode = httpStatus,
+                        message = result.Message,
+                        data = (object?)null,
+                        success = false
+                    });
+                }
+
+                return Ok(new
+                {
+                    status = "success",
+                    statusCode = 200,
+                    message = result.Message,
+                    data = new
+                    {
+                        items = result.Data,
+                        totalCount = result.TotalCount,
+                        pageNumber = model.PageNumber,
+                        pageSize = model.PageSize
+                    },
+                    success = true
+                });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new
+                {
+                    status = "error",
+                    statusCode = 500,
+                    message = "An unexpected error occurred while retrieving ledger details.",
+                    data = (object?)null,
+                    success = false
+                });
+            }
+        }
+        #endregion
     }
 }

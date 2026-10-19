@@ -70,6 +70,7 @@ namespace Shah_Traveling_Agency_API.Areas.BranchAdmin.Models
         // Status
         public int BookingStatusId { get; set; }
         public float UnitPrice { get; set; }
+        public float AlreadyPaid { get; set; }
     }
 
 
@@ -158,6 +159,57 @@ namespace Shah_Traveling_Agency_API.Areas.BranchAdmin.Models
         public decimal TotalAmount { get; set; }
         public DateTime PaymentDate { get; set; }
         public List<int> BookingPassengerIds { get; set; } = new();
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // Get full ledger
+    public class LedgerFullDetailsRequest
+    {
+        public string? Search { get; set; }
+        public int PageNumber { get; set; } = 1;
+        public int PageSize { get; set; } = 20;
+        public int AmountStatus { get; set; } = 0;
+    }
+
+    public class LedgerFullDetailsModel
+    {
+        public int CustomerId { get; set; }
+        public string UserName { get; set; }
+        public int BookingId { get; set; }
+        public string? BookingReference { get; set; }
+
+        public int BookingPassengerId { get; set; }
+        public string? PassengerName { get; set; }
+
+        public decimal TicketPrice { get; set; }
+        public decimal TotalPaid { get; set; }
+        public decimal RemainingBalance { get; set; }
+        public string? PaymentStatus { get; set; }
+
+        public int? TicketPaymentId { get; set; }
+        public int? PaymentMethodId { get; set; }
+        public string? PaymentMethodName { get; set; }
+
+        public decimal? PaidAmount { get; set; }
+        public DateTime? PaidDate { get; set; }
     }
 
 
