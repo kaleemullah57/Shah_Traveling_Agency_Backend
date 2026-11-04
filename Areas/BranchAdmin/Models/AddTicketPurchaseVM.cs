@@ -48,6 +48,20 @@
         public string? PaymentReference { get; set; }
 
         public string? Remarks { get; set; }
+
+
+
+        // Return Journey Details
+        public int? ReturnAirlineId { get; set; }
+        public int? ReturnFromAirportId { get; set; }
+        public int? ReturnToAirportId { get; set; }
+        public int? ReturnFlightRouteTypeId { get; set; }
+
+        public DateTime? ReturnDepartureDateTime { get; set; }
+        public DateTime? ReturnArrivalDateTime { get; set; }
+
+        public List<AddTicketPurchaseStopRequest> ReturnStops { get; set; } = new();
+
     }
 
     public class AddTicketPurchaseStopRequest

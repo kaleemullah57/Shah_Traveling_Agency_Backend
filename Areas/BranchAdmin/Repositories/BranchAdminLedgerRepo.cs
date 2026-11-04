@@ -18,7 +18,7 @@ namespace Shah_Traveling_Agency_API.Areas.BranchAdmin.Repositories
 
         #region Get Booking
 
-        public async Task<(int ReturnValue, string Message, List<LedgerCustomerBooking> Bookings)> GetLedgerCustomerBookings(GetLedgerCustomerBookingsRequest request, int branchId)
+        public async Task<(int ReturnValue, string Message, List<LedgerCustomerBooking> Bookings)> GetLedgerCustomerBookings(GetLedgerCustomerBookingsRequest request, int branchId, int UserID)
         {
             using var connection = _dapperContext.CreateConnection();
 
@@ -27,6 +27,7 @@ namespace Shah_Traveling_Agency_API.Areas.BranchAdmin.Repositories
             parameters.Add("@Search", request.Search, DbType.String);
             parameters.Add("@CustomerId", request.CustomerId, DbType.Int32);
             parameters.Add("@BranchId", branchId, DbType.Int32);
+            parameters.Add("@UserID", UserID, DbType.Int32);
 
             parameters.Add("@Message", dbType: DbType.String, direction: ParameterDirection.Output, size: -1);
 

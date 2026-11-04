@@ -103,6 +103,16 @@
 
         public List<PurchaseInvoicePaymentHistoryModel> PaymentHistory { get; set; }
             = new();
+
+        // Return flight details
+        public string? ReturnAiroplanDetailJson { get; set; }
+
+        public PurchaseInvoiceReturnFlightModel? ReturnFlightDetails { get; set; }
+
+        // Return flight stops
+        public string? ReturnStopsJSON { get; set; }
+
+        public List<PurchaseInvoiceReturnStopModel> ReturnStops { get; set; } = new();
     }
 
     public class PurchaseInvoiceStopModel
@@ -111,6 +121,37 @@
         public string? StopAirport { get; set; }
         public DateTime? ArrivalDateTime { get; set; }
         public DateTime? DepartureDateTime { get; set; }
+    }
+
+    public class PurchaseInvoiceReturnFlightModel
+    {
+        public int? ReturnAirlineId { get; set; }
+        public string? ReturnAirline { get; set; }
+
+        public int? ReturnFromAirportId { get; set; }
+        public string? ReturnFromAirport { get; set; }
+
+        public int? ReturnToAirportId { get; set; }
+        public string? ReturnToAirport { get; set; }
+
+        public DateTime? ReturnDepartureDateTime { get; set; }
+        public DateTime? ReturnArrivalDateTime { get; set; }
+
+        public int? ReturnFlightRouteTypeId { get; set; }
+        public string? ReturnFlightRoute { get; set; }
+    }
+
+    public class PurchaseInvoiceReturnStopModel
+    {
+        public int StopNumber { get; set; }
+        public int PurchaseInvoiceItemId { get; set; }
+        public int AirportId { get; set; }
+
+        public string? AirportName { get; set; }
+
+        public DateTime? ArrivalDateTime { get; set; }
+        public DateTime? DepartureDateTime { get; set; }
+        public DateTime? CreatedDate { get; set; }
     }
 
 

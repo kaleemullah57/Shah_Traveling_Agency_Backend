@@ -454,6 +454,76 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Controllers
                 });
             }
         }
+
+
+
+
+
+        // Update Contries
+        [HttpPut("UpdateCountry")]
+        public async Task<IActionResult> UpdateCountry([FromBody] CountryUpdateModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    statusCode = 400,
+                    message = "Invalid request data.",
+                    data = (object)null
+                });
+            }
+
+            var result = await _superAdminSetupRepo.UpdateCountry(model, UserId);
+
+            switch (result.ReturnValue)
+            {
+                case 1:
+                    return StatusCode(403, new
+                    {
+                        success = false,
+                        statusCode = 403,
+                        message = result.Message,
+                        data = (object)null
+                    });
+
+                case 2:
+                    return Conflict(new
+                    {
+                        success = false,
+                        statusCode = 409,
+                        message = result.Message,
+                        data = (object)null
+                    });
+
+                case 3:
+                    return Ok(new
+                    {
+                        success = true,
+                        statusCode = 200,
+                        message = result.Message,
+                        data = (object)null
+                    });
+
+                case 4:
+                    return NotFound(new
+                    {
+                        success = false,
+                        statusCode = 404,
+                        message = result.Message,
+                        data = (object)null
+                    });
+
+                default:
+                    return StatusCode(500, new
+                    {
+                        success = false,
+                        statusCode = 500,
+                        message = result.Message ?? "Something went wrong.",
+                        data = (object)null
+                    });
+            }
+        }
         #endregion
 
         #region Provinces

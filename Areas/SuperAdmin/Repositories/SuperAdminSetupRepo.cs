@@ -190,6 +190,37 @@ namespace Shah_Traveling_Agency_API.Areas.SuperAdmin.Repositories
 
             return (returnValue, message);
         }
+
+
+
+
+        public async Task<(int ReturnValue, string Message)> UpdateCountry(CountryUpdateModel model, int createdById)
+        {
+            using var connection = _dapperContext.CreateConnection();
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@CountryId", model.CountryId);
+            parameters.Add("@CountryName", model.CountryName);
+            parameters.Add("@CountryCode", model.CountryCode);
+            parameters.Add("@IsActive", model.IsActive);
+            parameters.Add("@CreatedById", createdById);
+
+            parameters.Add("@Message", dbType: DbType.String, direction: ParameterDirection.Output, size: -1);
+
+            parameters.Add("@ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
+
+            await connection.ExecuteAsync(
+                "Data.Sp_Update_Countries",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+
+            int returnValue = parameters.Get<int>("@ReturnValue");
+            string message = parameters.Get<string>("@Message");
+
+            return (returnValue, message);
+        }
         #endregion
 
         #region Provices

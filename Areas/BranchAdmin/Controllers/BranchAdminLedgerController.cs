@@ -56,7 +56,7 @@ namespace Shah_Traveling_Agency_API.Areas.BranchAdmin.Controllers
                     });
                 }
 
-                var result = await _branchAdminLedgerRepo.GetLedgerCustomerBookings(request, BranchId);
+                var result = await _branchAdminLedgerRepo.GetLedgerCustomerBookings(request, BranchId, UserId);
 
                 if (result.ReturnValue < 0)
                 {

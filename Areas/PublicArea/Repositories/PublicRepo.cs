@@ -90,6 +90,7 @@ namespace Shah_Traveling_Agency_API.Areas.PublicArea.Repositories
         #endregion
 
         #region Shared Tickets
+
         public async Task<(int ReturnCode, string Message, int TotalCount, List<SharedTicketModel> Data)> GetSharedTicketsAsync(SharedTicketsRequest request, int? userId)
         {
             var parameters = new DynamicParameters();
@@ -110,49 +111,98 @@ namespace Shah_Traveling_Agency_API.Areas.PublicArea.Repositories
             parameters.Add("@ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
 
             using var connection = _dapperContext.CreateConnection();
+
             var dbData = (
-        await connection.QueryAsync<SharedTicketModel>(
-            "Data.SP_GetSharedTickets",
-            parameters,
-            commandType: CommandType.StoredProcedure
-        )
-    ).ToList();
+                await connection.QueryAsync<SharedTicketModel>(
+                    "Data.SP_GetSharedTickets",
+                    parameters,
+                    commandType: CommandType.StoredProcedure
+                )
+            ).ToList();
+
+            var jsonOptions = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
 
             var data = dbData.Select(x =>
             {
-                var ticket = new SharedTicketModel
+                // Deserialize outbound stops
+                var stops = DeserializeJson<List<SharedTicketStopModel>>(
+                    x.StopsJson,
+                    jsonOptions
+                ) ?? new List<SharedTicketStopModel>();
+
+                // Deserialize return flight details
+                var returnFlight =
+                    DeserializeJson<SharedTicketReturnFlightModel>(
+                        x.ReturnAiroplanDetailJson,
+                        jsonOptions
+                    );
+
+                // Treat an empty JSON object {} as no return flight
+                if (returnFlight != null &&
+                    returnFlight.ReturnAirlineId == null &&
+                    returnFlight.ReturnFromAirportId == null &&
+                    returnFlight.ReturnToAirportId == null &&
+                    returnFlight.ReturnDepartureDateTime == null &&
+                    returnFlight.ReturnArrivalDateTime == null)
+                {
+                    returnFlight = null;
+                }
+
+                // Deserialize return stops
+                var returnStops =
+                    DeserializeJson<List<SharedTicketReturnStopModel>>(
+                        x.ReturnStopsJSON,
+                        jsonOptions
+                    ) ?? new List<SharedTicketReturnStopModel>();
+
+                return new SharedTicketModel
                 {
                     PurchaseInvoiceItemId = x.PurchaseInvoiceItemId,
+
                     AirlineName = x.AirlineName,
                     AirlineCode = x.AirlineCode,
+
                     FromAirport = x.FromAirport,
                     ToAirport = x.ToAirport,
+
                     FromCountry = x.FromCountry,
                     ToCountry = x.ToCountry,
+
                     DepartureDateTime = x.DepartureDateTime,
                     ArrivalDateTime = x.ArrivalDateTime,
+
                     AvailableQuantity = x.AvailableQuantity,
                     SellingPrice = x.SellingPrice,
+
                     CheckedBaggageKg = x.CheckedBaggageKg,
                     HandBaggageKg = x.HandBaggageKg,
                     PersonalItemKg = x.PersonalItemKg,
+
                     ValidFrom = x.ValidFrom,
                     ValidUntil = x.ValidUntil,
+
                     BranchId = x.BranchId,
                     BranchName = x.BranchName,
+
                     CreatedDate = x.CreatedDate,
                     CreatedBy = x.CreatedBy,
+
                     TicketTypeId = x.TicketTypeId,
                     TicketTypeName = x.TicketTypeName,
 
-                    Stops = string.IsNullOrWhiteSpace(x.StopsJson)
-                        ? new List<SharedTicketStopModel>()
-                        : JsonSerializer.Deserialize<List<SharedTicketStopModel>>(
-                            x.StopsJson
-                        ) ?? new List<SharedTicketStopModel>()
-                };
+                    // Preserve original JSON fields
+                    StopsJson = x.StopsJson,
+                    ReturnAiroplanDetailJson = x.ReturnAiroplanDetailJson,
+                    ReturnStopsJSON = x.ReturnStopsJSON,
 
-                return ticket;
+                    // Parsed objects and lists
+                    Stops = stops,
+                    ReturnFlightDetails = returnFlight,
+                    ReturnStops = returnStops
+                };
             }).ToList();
 
             int totalCount = parameters.Get<int?>("@TotalCount") ?? 0;
@@ -168,6 +218,24 @@ namespace Shah_Traveling_Agency_API.Areas.PublicArea.Repositories
                 data
             );
         }
+
+        private static T? DeserializeJson<T>(
+            string? json,
+            JsonSerializerOptions options)
+        {
+            if (string.IsNullOrWhiteSpace(json))
+                return default;
+
+            try
+            {
+                return JsonSerializer.Deserialize<T>(json, options);
+            }
+            catch (JsonException)
+            {
+                return default;
+            }
+        }
+
         #endregion
 
         #region Book Passenger Ticket
@@ -196,7 +264,7 @@ namespace Shah_Traveling_Agency_API.Areas.PublicArea.Repositories
             foreach (var passenger in request.Passengers)
             {
                 var row = passengerTable.NewRow();
-                
+
                 var fullName = string.Join(
                     " ",
                     new[]
